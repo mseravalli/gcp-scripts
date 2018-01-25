@@ -1,0 +1,2 @@
+recursive-include echo/templates *
+include echo/default.cfg
