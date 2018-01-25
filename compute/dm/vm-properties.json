@@ -1,0 +1,94 @@
+{
+  "kind": "compute#instance",
+  "id": "unsigned long",
+  "creationTimestamp": "string",
+  "name": "string",
+  "description": "string",
+  "tags": {
+    "items": [
+      "string"
+    ],
+    "fingerprint": "bytes"
+  },
+  "machineType": "string",
+  "status": "string",
+  "statusMessage": "string",
+  "zone": "string",
+  "canIpForward": "boolean",
+  "networkInterfaces": [
+    {
+      "kind": "compute#networkInterface",
+      "network": "string",
+      "subnetwork": "string",
+      "networkIP": "string",
+      "name": "string",
+      "accessConfigs": [
+        {
+          "kind": "compute#accessConfig",
+          "type": "string",
+          "name": "string",
+          "natIP": "string"
+        }
+      ]
+    }
+  ],
+  "disks": [
+    {
+      "kind": "compute#attachedDisk",
+      "type": "string",
+      "mode": "string",
+      "source": "string",
+      "deviceName": "string",
+      "index": "integer",
+      "boot": "boolean",
+      "initializeParams": {
+        "diskName": "string",
+        "sourceImage": "string",
+        "diskSizeGb": "long",
+        "diskType": "string",
+        "sourceImageEncryptionKey": {
+          "rawKey": "string",
+          "sha256": "string"
+        }
+      },
+      "autoDelete": "boolean",
+      "licenses": [
+        "string"
+      ],
+      "interface": "string",
+      "diskEncryptionKey": {
+        "rawKey": "string",
+        "sha256": "string"
+      }
+    }
+  ],
+  "metadata": {
+    "kind": "compute#metadata",
+    "fingerprint": "bytes",
+    "items": [
+      {
+        "key": "string",
+        "value": "string"
+      }
+    ]
+  },
+  "serviceAccounts": [
+    {
+      "email": "string",
+      "scopes": [
+        "string"
+      ]
+    }
+  ],
+  "selfLink": "string",
+  "scheduling": {
+    "onHostMaintenance": "string",
+    "automaticRestart": "boolean",
+    "preemptible": "boolean"
+  },
+  "cpuPlatform": "string",
+  "labels": {
+    "(key)": "string"
+  },
+  "startRestricted": "boolean"
+}
