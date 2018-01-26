@@ -1,0 +1,103 @@
+{% set id = env["deployment"] %}
+resources:
+- name: {{ id }}-it
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: {{ properties['machineType'] }}
+      metadata:
+        items:
+          - key: deployment 
+            value: {{ id }}
+          {% if imports['startup-script'] %}
+          - key: startup-script
+            value: |
+              {{ imports['startup-script']|indent(14) }}
+          {% endif %}
+          {% for i in properties["metadata"] %}
+          - {{ i }} 
+          {% endfor %}
+      disks:
+        - deviceName: boot
+          boot: true
+          autoDelete: true
+          initializeParams:
+            diskSizeGb: 10
+            sourceImage: {{ properties['sourceImage'] }}
+      networkInterfaces:
+        - name: {{ id }}-eth0
+          network: {{ properties['network'] }}
+          {% if properties['subnet'] %}
+            subnetwork: {{ properties['subnet'] }}
+          {% endif %}
+          accessConfigs:
+            - name: eth0
+              type: ONE_TO_ONE_NAT
+      serviceAccounts: 
+        - email: {{ properties['serviceAccount'] }}
+          scopes:
+            - 'https://www.googleapis.com/auth/cloud-platform'
+      {% if properties['tags'] %}
+      tags:
+        items:
+          {% for i in properties["tags"] %}
+          - {{ i }}
+          {% endfor %}
+      {% endif %}
+      
+- name: {{ id }}-igm
+  type: compute.v1.instanceGroupManager
+  properties:
+    targetSize: {{ properties["maxReplicas"] }}
+    zone: {{ properties['zone'] }}
+    baseInstanceName: {{ id }}-instance
+    instanceTemplate: $(ref.{{ id }}-it.selfLink)
+
+- name: {{ id }}-as
+  type: compute.v1.autoscaler
+  properties:
+    zone: {{ properties["zone"] }}
+    target: $(ref.{{ id }}-igm.selfLink)
+    autoscalingPolicy:
+      maxNumReplicas: {{ properties["maxReplicas"] }}
+      cpuUtilization:
+        utilizationTarget: 0.8
+      coolDownPeriodSec: 90
+
+- name: {{ id }}-hc
+  type: compute.v1.httpHealthCheck
+  properties:
+    port: {{ properties["port"] }}
+    requestPath: /
+
+- name: {{ id }}-bes
+  type: compute.v1.backendService
+  properties:
+    port: {{ properties["port"] }}
+    portName: {{ env["name"] }}
+    backends:
+      - name: {{ id }}-{{ properties["service"] }}
+        group: $(ref.{{ id }}-igm.instanceGroup)
+    healthChecks:
+      - $(ref.{{ id }}-hc.selfLink)
+
+- name: {{ id }}-urlmap
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.{{ id }}-bes.selfLink)
+
+- name: {{ id }}-targetproxy
+  type: compute.v1.targetHttpProxy
+  properties:
+    urlMap: $(ref.{{ id }}-urlmap.selfLink)
+
+- name: {{ id }}-l7lb
+  type: compute.v1.globalForwardingRule
+  properties:
+    IPProtocol: TCP
+    portRange: {{ properties["port"] }}
+    target: $(ref.{{ id }}-targetproxy.selfLink)
+
+outputs:
+  - name: url
+    value: http://$(ref.{{ id }}-l7lb.IPAddress)

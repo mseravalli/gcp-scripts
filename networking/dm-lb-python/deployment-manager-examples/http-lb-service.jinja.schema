@@ -1,0 +1,63 @@
+info:
+  title: http service template
+  author: cloud-training@google.com
+  description: |
+    Creates a http load balanced service
+  version: 0.1
+imports:
+  - path: http-lb-service.jinja
+required:
+  - zone
+properties:
+  zone:
+    type: string
+    description: i.e. us-east1-d
+  
+  network:
+    type: string
+    description: Network URL i.e. projects/project/global/networks/network
+    default: global/networks/default
+  subnet:
+    type: string
+    description: Subnet URL i.e regions/region/subnetworks/subnetwork
+  sourceImage: 
+    type: string
+    description: Image uri
+    default: projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts
+  
+  machineType:
+    type: string
+    default: n1-standard-1
+  
+  serviceAccount:
+    type: string
+    description: Service account with permissions to label resources i.e. Project editor.
+    default: default
+  tags:
+    type: array
+    description: Array of tags
+    items:
+      type: string
+  metadata:
+    type: array 
+    description: Array of metadata key pairs
+    items:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+        value: 
+          type: string
+  maxReplicas: 
+    type: integer
+    description: Max number of instance for backend service
+    default: 3
+    minimum: 3
+    maximum: 10
+  port: 
+    type: integer
+    description: Service port
+    default: 80
