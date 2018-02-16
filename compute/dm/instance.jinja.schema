@@ -24,8 +24,7 @@ properties:
   sourceImage: 
     type: string
     description: Image uri
-    default: projects/suse-cloud/global/images/sles-12-sp3-v20180214
-    # default: projects/suse-cloud/global/images/sles-11-sp4-v20180104
+    default: projects/suse-cloud/global/images/sles-12-sp3-v20180104
   
   machineType:
     type: string

@@ -1,7 +1,7 @@
 imports:
   - path: instance.jinja
-# - path: install-echo.sh
-#   name: startup-script
+  - path: install-echo.sh
+    name: startup-script
 resources:
   - name: instance
     type: instance.jinja
