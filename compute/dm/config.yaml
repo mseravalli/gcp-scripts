@@ -1,6 +1,6 @@
 imports:
   - path: instance.jinja
-  - path: install-echo.sh
+  - path: init_disk.sh
     name: startup-script
 resources:
   - name: instance
