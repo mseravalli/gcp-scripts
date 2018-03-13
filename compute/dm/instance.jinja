@@ -52,7 +52,7 @@ resources:
       - deviceName: persistent-disk
         boot: false
         autoDelete: true
-        source: zones/europe-west1-b/disks/disk-{{ env['deployment'] }}
+        source: zones/{{ properties['zone'] }}/disks/disk-{{ env['deployment'] }}
     networkInterfaces:
       - name: {{ ID }}-eth0
         network: {{ properties['network'] }}
