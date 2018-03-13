@@ -6,7 +6,7 @@ resources:
   - name: instance
     type: instance.jinja
     properties:
-      zone: europe-west1-b
+      zone: europe-west3-b
       tags: 
         - http
       metadata:
