@@ -1,8 +1,8 @@
 #!/bin/bash -x
 
 # Optional login if you are not already logged in
-PROJECT=seravalli-test
 # gcloud auth login
+PROJECT=test-seravalli
 gcloud config set project $PROJECT
 
 REGION_1="us-east1"
@@ -19,15 +19,15 @@ SUBNET_RANGE_3="10.0.3.0/24"
 SUBNET_RANGE_4="10.0.3.0/24"
 
 # set static ip address within network
-gcloud compute addresses create "static-ip" \
+gcloud compute addresses create "my-static-ip" \
     --region $REGION_1 --subnet default # --addresses 10.156.0.16
 
 gcloud compute instances create static-ip-$(date '+%s') \
-    --private-network-ip static-ip \
-    --zone $ZONE_1
+    --private-network-ip "my-static-ip" \
+    --zone $ZONE_1 \
     --subnet default
 
-
-
-
-
+gcloud compute addresses list
+# outputs
+# NAME          REGION    ADDRESS      STATUS
+# my-static-ip  us-east1  XX.XX.XX.XX  IN_USE
