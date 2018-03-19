@@ -1,0 +1,11 @@
+imports:
+  - path: instance.jinja
+  - path: init.sh
+    name: startup-script
+resources:
+  - name: instance
+    type: instance.jinja
+    properties:
+      zone: europe-west3-b
+      tags: 
+        - http

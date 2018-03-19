@@ -1,0 +1,35 @@
+info:
+  title: machines automounting pssd
+  author: seravalli@google.com
+  description: |
+    Creates a VM instance with a persistent ssd attached and automatically |
+    formatted and mounted
+  version: 0.1
+imports:
+  - path: instance.jinja
+properties:
+  region:
+    type: string
+    description: i.e. europe-west3
+    default: europe-west3
+  zone:
+    type: string
+    description: i.e. europe-west3-b
+    default: europe-west3-b
+  sourceImage: 
+    type: string
+    description: Image uri
+    default: projects/suse-cloud/global/images/sles-12-sp3-v20180104
+  machineType:
+    type: string
+    default: n1-standard-1
+  serviceAccount:
+    type: string
+    description: Service account with permissions to label resources i.e. Project editor.
+    default: default
+  tags:
+    type: array
+    description: Array of tags
+    items:
+      type: string
+
