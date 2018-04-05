@@ -1,9 +1,7 @@
-#!/bin/bash
-
-set -x
+#!/bin/bash -x
 
 # Optional login if you are not already logged in
-PROJECT=qwiklabs-gcp-19e67d5ea9051488
+PROJECT=seravalli-test
 # gcloud auth login
 gcloud config set project $PROJECT
 
@@ -20,9 +18,14 @@ SUBNET_RANGE_2="10.0.2.0/24"
 SUBNET_RANGE_3="10.0.3.0/24"
 SUBNET_RANGE_4="10.0.3.0/24"
 
-gcloud container clusters create networklb --num-nodes 3
+gcloud container --project "seravalli-test" clusters create "cluster-1" --zone "europe-west1-c" --username "admin" --cluster-version "1.9.2-gke.1" --machine-type "n1-standard-1" --image-type "COS" --disk-size "64" --local-ssd-count "1" --scopes "https://www.googleapis.com/auth/compute","https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --num-nodes "3" --network "default" --enable-cloud-logging --enable-cloud-monitoring --subnetwork "default" --enable-autoupgrade --enable-autorepair
 
-kubectl run nginx --image=nginx --replicas=3
-
-kubectl expose deployment nginx --port=80 --target-port=80 --type=LoadBalancer
+# kubectl run nginx \
+#   --image=nginx \
+#   --replicas=3
+#
+# kubectl expose deployment nginx \
+#   --port=80 \
+#   --target-port=80 \
+#   --type=LoadBalancer
 
