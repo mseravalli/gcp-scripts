@@ -5,11 +5,11 @@
 # $ ./copy-vm-2nics.sh
 # 
 # The script will
-# * Create a VM
+# * Create a VM, attach a disk, format it and store a simple file
 # * Configure the VM instance , so that the DISKS are not deleted when the VM
 #   is deleted
 # * Delete the instance created 
-# * Create an additional network and subnet
+# * Create an additional VPC and subnet
 # * Create a instance with 2 NICs with attached the disks from original VM
 # * Bring up the server with 2 NICS with boot disk and data disks mounted
 ############################################################################### 
@@ -32,7 +32,18 @@ gcloud compute disks create ${ATTACHED_DISK_NAME} \
 ORIGINAL_VM_NAME="instance-$(date '+%s')"
 gcloud compute instances create ${ORIGINAL_VM_NAME} \
   --zone ${ZONE} --machine-type "n1-standard-4" \
-  --disk "name=${ATTACHED_DISK_NAME},device-name=${ATTACHED_DISK_NAME},mode=rw,boot=no" 
+  --disk "name=${ATTACHED_DISK_NAME},device-name=${ATTACHED_DISK_NAME},mode=rw,boot=no" \
+  --metadata startup-script="#! /bin/bash
+      yes | sudo mkfs.ext3 /dev/disk/by-id/${ATTACHED_DISK_NAME}
+      sudo mkdir -p /mnt/disks/${ATTACHED_DISK_NAME}
+      sudo mount /dev/disk/by-id/${ATTACHED_DISK_NAME} \
+        /mnt/disks/${ATTACHED_DISK_NAME}
+      sudo chmod 777 -R /mnt/disks/${ATTACHED_DISK_NAME}
+      echo 'hello' > /mnt/disks/${ATTACHED_DISK_NAME}/hello.txt
+  "
+
+# wait 30 secs for the formatting to be completed
+sleep 30
 
 echo 'original vm created, press enter to continue with deletion'
 read
@@ -42,6 +53,9 @@ read
 gcloud compute instances set-disk-auto-delete ${ORIGINAL_VM_NAME} \
   --disk=${ORIGINAL_VM_NAME} \
   --no-auto-delete
+
+# get the vm type from the original
+CLONED_VM_TYPE=$(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format='table(MACHINE_TYPE:label="")')
 
 # delete the vm
 gcloud compute instances delete ${ORIGINAL_VM_NAME} \
@@ -61,24 +75,34 @@ gcloud compute networks subnets create network-1 \
   --range=10.166.0.0/20
 
 # create the new vm
-NEW_VM_NAME="instance-$(date '+%s')"
-gcloud compute instances create ${NEW_VM_NAME} \
-  --zone ${ZONE} --machine-type "n1-standard-4" \
-  --network-interface subnet=default,no-address \
+CLONED_VM_NAME="instance-$(date '+%s')"
+gcloud compute instances create ${CLONED_VM_NAME} \
+  --zone ${ZONE} --machine-type ${CLONED_VM_TYPE} \
+  --network-interface subnet=default \
   --network-interface subnet=network-1,no-address \
   --disk "name=${ORIGINAL_VM_NAME},device-name=${ORIGINAL_VM_NAME},mode=rw,boot=yes" \
-  --disk "name=${ATTACHED_DISK_NAME},device-name=${ATTACHED_DISK_NAME},mode=rw,boot=no" 
+  --disk "name=${ATTACHED_DISK_NAME},device-name=${ATTACHED_DISK_NAME},mode=rw,boot=no" \
+  --metadata serial-port-enable=1,startup-script="#! /bin/bash
+      sudo mkdir -p /mnt/disks/${ATTACHED_DISK_NAME}
+      sudo mount /dev/disk/by-id/${ATTACHED_DISK_NAME} \
+        /mnt/disks/${ATTACHED_DISK_NAME}
+      sudo chmod 777 -R /mnt/disks/${ATTACHED_DISK_NAME}
+  "
 
 echo 'new vm created, press enter to continue with cleanup'
 read
 
 # cleanup
-gcloud compute instances delete ${NEW_VM_NAME} \
+gcloud compute instances delete ${CLONED_VM_NAME} \
   --zone ${ZONE} \
+  --quiet
+gcloud compute disks delete ${ORIGINAL_VM_NAME} \
+  --zone=${ZONE} \
   --quiet
 gcloud compute disks delete ${ATTACHED_DISK_NAME} \
   --zone=${ZONE} \
   --quiet
+
 gcloud compute networks subnets delete network-1 \
   --region=${REGION} \
   --quiet
