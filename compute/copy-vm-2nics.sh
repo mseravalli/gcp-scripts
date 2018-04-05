@@ -58,6 +58,7 @@ gcloud compute instances set-disk-auto-delete ${ORIGINAL_VM_NAME} \
 CLONED_VM_TYPE=$(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format='table(MACHINE_TYPE:label="")')
 CLONED_VM_ZONE=$(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format='table(zone:label="")')
 CLONED_VM_ORIGINAL_SUBNET=$(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format=json | jq -r '.[0].networkInterfaces[0].subnetwork' | sed 's/^.*subnetworks\///') 
+CLONED_VM_DISKS_NAMES=($(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format=json | jq -r '.[0].disks | map( ( if (.boot) then "" else .source end) )[]' | sed 's/^.*disks\///' ) )
 CLONED_VM_DISKS=($(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format=json | jq -r '.[0].disks | map("name="+.source+",device-name="+.deviceName+",mode=rw,boot="+ ( if (.boot) then "yes" else "no" end) )[]' ))
 
 # delete the vm
@@ -79,10 +80,19 @@ gcloud compute networks subnets create network-1 \
 
 # create the new vm
 CLONED_VM_NAME="instance-$(date '+%s')"
-# DISKS=( $(echo $CLONED_VM_DISKS | xargs -I {} echo '--disk {} ') )
 
 DISKS=""
 for d in ${CLONED_VM_DISKS[@]}; do  DISKS="${DISKS} --disk $d " ; done
+
+STARTUP_SCRIPT=""
+for d in ${CLONED_VM_DISKS_NAMES[@]}
+do
+    STARTUP_SCRIPT="${STARTUP_SCRIPT} 
+      sudo mkdir -p /mnt/disks/${d} ;
+      sudo mount /dev/disk/by-id/${d} /mnt/disks/${d} ;
+      sudo chmod 777 -R /mnt/disks/${d} ;
+    "
+done
 
 gcloud compute instances create ${CLONED_VM_NAME} \
   --zone ${ZONE} --machine-type ${CLONED_VM_TYPE} \
@@ -90,10 +100,7 @@ gcloud compute instances create ${CLONED_VM_NAME} \
   --network-interface subnet=network-1,no-address \
   ${DISKS} \
   --metadata serial-port-enable=1,startup-script="#! /bin/bash
-      sudo mkdir -p /mnt/disks/${ATTACHED_DISK_NAME}
-      sudo mount /dev/disk/by-id/${ATTACHED_DISK_NAME} \
-        /mnt/disks/${ATTACHED_DISK_NAME}
-      sudo chmod 777 -R /mnt/disks/${ATTACHED_DISK_NAME}
+    ${STARTUP_SCRIPT}
   "
 
 echo 'new vm created, press enter to continue with cleanup'
