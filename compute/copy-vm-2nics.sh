@@ -25,21 +25,33 @@ ZONE="${REGION}-b"
 DISK_TYPE=pd-standard
 
 # create the original vm
-ATTACHED_DISK_NAME="google-${DISK_TYPE}-$(date '+%s')"
-gcloud compute disks create ${ATTACHED_DISK_NAME} \
+ATTACHED_DISK_NAME_1="google-${DISK_TYPE}-$(date '+%s')"
+gcloud compute disks create ${ATTACHED_DISK_NAME_1} \
+  --zone=${ZONE} --type=${DISK_TYPE} --size=20GB
+
+ATTACHED_DISK_NAME_2="google-${DISK_TYPE}-$(date '+%s')"
+gcloud compute disks create ${ATTACHED_DISK_NAME_2} \
   --zone=${ZONE} --type=${DISK_TYPE} --size=20GB
 
 ORIGINAL_VM_NAME="instance-$(date '+%s')"
 gcloud compute instances create ${ORIGINAL_VM_NAME} \
   --zone ${ZONE} --machine-type "n1-standard-4" \
-  --disk "name=${ATTACHED_DISK_NAME},device-name=${ATTACHED_DISK_NAME},mode=rw,boot=no" \
+  --disk "name=${ATTACHED_DISK_NAME_1},device-name=${ATTACHED_DISK_NAME_1},mode=rw,boot=no" \
+  --disk "name=${ATTACHED_DISK_NAME_2},device-name=${ATTACHED_DISK_NAME_2},mode=rw,boot=no" \
   --metadata startup-script="#! /bin/bash
-      yes | sudo mkfs.ext3 /dev/disk/by-id/${ATTACHED_DISK_NAME}
-      sudo mkdir -p /mnt/disks/${ATTACHED_DISK_NAME}
-      sudo mount /dev/disk/by-id/${ATTACHED_DISK_NAME} \
-        /mnt/disks/${ATTACHED_DISK_NAME}
-      sudo chmod 777 -R /mnt/disks/${ATTACHED_DISK_NAME}
-      echo 'hello' > /mnt/disks/${ATTACHED_DISK_NAME}/hello.txt
+      yes | sudo mkfs.ext3 /dev/disk/by-id/${ATTACHED_DISK_NAME_1}
+      sudo mkdir -p /mnt/disks/${ATTACHED_DISK_NAME_1}
+      sudo mount /dev/disk/by-id/${ATTACHED_DISK_NAME_1} \
+        /mnt/disks/${ATTACHED_DISK_NAME_1}
+      sudo chmod 777 -R /mnt/disks/${ATTACHED_DISK_NAME_1}
+      echo 'hello' > /mnt/disks/${ATTACHED_DISK_NAME_1}/hello1.txt
+
+      yes | sudo mkfs.ext3 /dev/disk/by-id/${ATTACHED_DISK_NAME_2}
+      sudo mkdir -p /mnt/disks/${ATTACHED_DISK_NAME_2}
+      sudo mount /dev/disk/by-id/${ATTACHED_DISK_NAME_2} \
+        /mnt/disks/${ATTACHED_DISK_NAME_2}
+      sudo chmod 777 -R /mnt/disks/${ATTACHED_DISK_NAME_2}
+      echo 'hello' > /mnt/disks/${ATTACHED_DISK_NAME_2}/hello2.txt
   "
 
 # wait 30 secs for the disk to be formatted and mounted
@@ -113,7 +125,10 @@ gcloud compute instances delete ${CLONED_VM_NAME} \
 gcloud compute disks delete ${ORIGINAL_VM_NAME} \
   --zone=${ZONE} \
   --quiet
-gcloud compute disks delete ${ATTACHED_DISK_NAME} \
+gcloud compute disks delete ${ATTACHED_DISK_NAME_1} \
+  --zone=${ZONE} \
+  --quiet
+gcloud compute disks delete ${ATTACHED_DISK_NAME_2} \
   --zone=${ZONE} \
   --quiet
 
