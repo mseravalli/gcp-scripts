@@ -1,6 +1,8 @@
 #!/bin/bash -xe
 
 ############################################################################### 
+# The script requires jq: https://stedolan.github.io/jq/download/
+#
 # Lauch the script using
 # $ ./copy-vm-2nics.sh
 # 
