@@ -42,7 +42,7 @@ gcloud compute instances create ${ORIGINAL_VM_NAME} \
       echo 'hello' > /mnt/disks/${ATTACHED_DISK_NAME}/hello.txt
   "
 
-# wait 30 secs for the formatting to be completed
+# wait 30 secs for the disk to be formatted and mounted
 sleep 30
 
 echo 'original vm created, press enter to continue with deletion'
@@ -54,8 +54,11 @@ gcloud compute instances set-disk-auto-delete ${ORIGINAL_VM_NAME} \
   --disk=${ORIGINAL_VM_NAME} \
   --no-auto-delete
 
-# get the vm type from the original
+# get vm information from the original
 CLONED_VM_TYPE=$(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format='table(MACHINE_TYPE:label="")')
+CLONED_VM_ZONE=$(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format='table(zone:label="")')
+CLONED_VM_ORIGINAL_SUBNET=$(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format=json | jq -r '.[0].networkInterfaces[0].subnetwork' | sed 's/^.*subnetworks\///') 
+CLONED_VM_DISKS=($(gcloud compute instances list --filter="name=( '${ORIGINAL_VM_NAME}' )" --format=json | jq -r '.[0].disks | map("name="+.source+",device-name="+.deviceName+",mode=rw,boot="+ ( if (.boot) then "yes" else "no" end) )[]' ))
 
 # delete the vm
 gcloud compute instances delete ${ORIGINAL_VM_NAME} \
@@ -76,12 +79,16 @@ gcloud compute networks subnets create network-1 \
 
 # create the new vm
 CLONED_VM_NAME="instance-$(date '+%s')"
+# DISKS=( $(echo $CLONED_VM_DISKS | xargs -I {} echo '--disk {} ') )
+
+DISKS=""
+for d in ${CLONED_VM_DISKS[@]}; do  DISKS="${DISKS} --disk $d " ; done
+
 gcloud compute instances create ${CLONED_VM_NAME} \
   --zone ${ZONE} --machine-type ${CLONED_VM_TYPE} \
-  --network-interface subnet=default \
+  --network-interface subnet=${CLONED_VM_ORIGINAL_SUBNET} \
   --network-interface subnet=network-1,no-address \
-  --disk "name=${ORIGINAL_VM_NAME},device-name=${ORIGINAL_VM_NAME},mode=rw,boot=yes" \
-  --disk "name=${ATTACHED_DISK_NAME},device-name=${ATTACHED_DISK_NAME},mode=rw,boot=no" \
+  ${DISKS} \
   --metadata serial-port-enable=1,startup-script="#! /bin/bash
       sudo mkdir -p /mnt/disks/${ATTACHED_DISK_NAME}
       sudo mount /dev/disk/by-id/${ATTACHED_DISK_NAME} \
