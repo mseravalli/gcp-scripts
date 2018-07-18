@@ -16,4 +16,6 @@ export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/sa-python.json
 ## Run by passing the appropriate attributes
 ```
 python3 consumption.py --project_ids=test-seravalli-199408 --zones=europe-west3-a,europe-west3-b,europe-west3-c
+Total CPU: 5
+Total RAM: 0.014892578125 TB
 ```
