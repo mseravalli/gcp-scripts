@@ -54,7 +54,7 @@ def create_static_ip(compute, project, region, subnet, ip_address):
     "addressType": "INTERNAL",
     "ipVersion": "IPV4",
     "address": ip_address,
-    "subnetwork": f"regions/{region}/subnetworks/default", 
+    "subnetwork": f"regions/{region}/subnetworks/{subnet}", 
   }
   op = compute.addresses() \
     .insert(project=project, region=region, body=ip_body) \
@@ -71,6 +71,7 @@ def create_static_ip(compute, project, region, subnet, ip_address):
     .get(project=project, region=region, address=ip_name) \
     .execute()
 
+  print("address created")
   return ip_resource
   
 def create_vm(vm_name, project, region, zone):
@@ -170,11 +171,13 @@ def create_vm(vm_name, project, region, zone):
     .execute()
   return vm_resource
 
-def clone_vm_w_static_ip(original_vm_resource):
+def create_vm_config(original_vm_resource):
   # copy original settings
   project = original_vm_resource["zone"].split('/')[6]
   region = original_vm_resource["zone"].split('/')[-1][:-2]
   zone = original_vm_resource["zone"].split('/')[-1]
+  network = original_vm_resource["networkInterfaces"][0]["network"].split('/')[-1]
+  subnet = original_vm_resource["networkInterfaces"][0]["subnetwork"].split('/')[-1]
 
   cloned_vm_type = original_vm_resource["machineType"].split("/")[-1]
   cloned_vm_ip = original_vm_resource["networkInterfaces"][0]["networkIP"]
@@ -194,24 +197,6 @@ def clone_vm_w_static_ip(original_vm_resource):
     wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
   print("vm setting copied")
 
-  # delete original vm
-  op = compute.instances() \
-    .delete(project=project, zone=zone, instance=original_vm_resource["name"]) \
-    .execute()
-  wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
-  print("vm deleted")
-
-  # create new ip address
-  cloned_vm_ip_resource = create_static_ip(
-    compute=compute,
-    project=project,
-    region=region,
-    subnet="",
-    ip_address=cloned_vm_ip
-  )
-  print("address created")
-
-  # create new ip VM
   cloned_vm_startup_script="""#! /bin/bash"""
   for d in cloned_vm_attached_disks:
     cloned_vm_startup_script=f"""{cloned_vm_startup_script} 
@@ -226,9 +211,8 @@ def clone_vm_w_static_ip(original_vm_resource):
     "machineType": f"zones/{zone}/machineTypes/{cloned_vm_type}",
     "networkInterfaces": [ 
       { 
-        "network": "global/networks/default",
-        "subnetwork": f"regions/{region}/subnetworks/default", 
-        "networkIP": cloned_vm_ip_resource["selfLink"],
+        "network": f"global/networks/{network}",
+        "subnetwork": f"regions/{region}/subnetworks/{subnet}", 
         "accessConfigs": [ 
           {
             "name": "External NAT",
@@ -247,10 +231,43 @@ def clone_vm_w_static_ip(original_vm_resource):
       ],
     },
   }
+  
+  return cloned_vm_config
+
+def clone_vm_w_static_ip(original_vm_resource):
+  project = original_vm_resource["zone"].split('/')[6]
+  region = original_vm_resource["zone"].split('/')[-1][:-2]
+  zone = original_vm_resource["zone"].split('/')[-1]
+  network = original_vm_resource["networkInterfaces"][0]["network"].split('/')[-1]
+  subnet = original_vm_resource["networkInterfaces"][0]["subnetwork"].split('/')[-1]
+  ip_address = original_vm_resource["networkInterfaces"][0]["networkIP"]
+
+  # copy original settings
+  cloned_vm_config = create_vm_config(original_vm_resource)
+
+  # delete original vm
+  op = compute.instances() \
+    .delete(project=project, zone=zone, instance=original_vm_resource["name"]) \
+    .execute()
+  wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
+  print("vm deleted")
+
+  # create new ip address
+  cloned_vm_ip_resource = create_static_ip(
+    compute=compute,
+    project=project,
+    region=region,
+    subnet=subnet,
+    ip_address=ip_address
+  )
+  cloned_vm_config["networkInterfaces"][0]["networkIP"] = cloned_vm_ip_resource["selfLink"]
 
   op = compute.instances().insert(project=project, zone=zone, body=cloned_vm_config).execute()
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
   print("vm cloned")
+
+def filter_vms(vm_resources_raw):
+  return [vm for vm in vm_resources_raw["items"] if vm["name"].startswith("vm")]
 
 def main():
   FLAGS = flags.FLAGS
@@ -268,7 +285,7 @@ def main():
     .list(project=project, zone=zone) \
     .execute()
 
-  vm_resources = [vm for vm in vm_resources_raw["items"] if vm["name"].startswith("vm")]
+  vm_resources = filter_vms(vm_resources_raw)
 
   for vm in vm_resources:
     clone_vm_w_static_ip(original_vm_resource=vm)
