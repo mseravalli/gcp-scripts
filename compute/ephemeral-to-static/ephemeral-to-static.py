@@ -180,7 +180,10 @@ def create_vm(vm_name, project, region, zone):
   op = compute.instances() \
     .insert(project=project, zone=zone, body=vm_config) \
     .execute()
-  wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
+  wait_for_operation(compute=compute,
+    project=project,
+    zone=zone,
+    operation=op['name'])
   print("vm created")
 
   vm_resource = compute.instances() \
@@ -247,7 +250,7 @@ def create_vm_config(original_vm_resource):
     },
   }
   
-  print("vm setting copied")
+  print("vm configuration created")
 
   return cloned_vm_config
 
@@ -265,19 +268,30 @@ def clone_vm_w_static_ip(original_vm_resource):
                          autoDelete=False,
                          deviceName=d["deviceName"]) \
       .execute()
-    wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
+    wait_for_operation(compute=compute,
+      project=project,
+      zone=zone,
+      operation=op['name'])
+
   # delete original vm
   op = compute.instances() \
     .delete(project=project, zone=zone, instance=original_vm_resource["name"]) \
     .execute()
-  wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
+  wait_for_operation(compute=compute,
+    project=project,
+    zone=zone,
+    operation=op['name'])
   print("vm deleted")
 
   # copy original settings
   cloned_vm_config = create_vm_config(original_vm_resource)
 
-  op = compute.instances().insert(project=project, zone=zone, body=cloned_vm_config).execute()
-  wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
+  op = compute.instances() \
+    .insert(project=project, zone=zone, body=cloned_vm_config).execute()
+  wait_for_operation(compute=compute,
+    project=project,
+    zone=zone,
+    operation=op['name'])
   print("vm cloned")
 
 def filter_vms(vm_resources_raw):
