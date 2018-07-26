@@ -171,14 +171,11 @@ def create_vm(vm_name, project, region, zone):
   return vm_resource
 
 def clone_vm_w_static_ip(original_vm_resource):
-  # original_vm = compute.instances() \
-  #   .get(project=project, zone=zone, instance=original_vm_name) \
-  #   .execute()
+  # copy original settings
   project = original_vm_resource["zone"].split('/')[6]
   region = original_vm_resource["zone"].split('/')[-1][:-2]
   zone = original_vm_resource["zone"].split('/')[-1]
 
-  # copy original settings
   cloned_vm_type = original_vm_resource["machineType"].split("/")[-1]
   cloned_vm_ip = original_vm_resource["networkInterfaces"][0]["networkIP"]
   cloned_vm_subnetwork = original_vm_resource["networkInterfaces"][0]["subnetwork"]
@@ -195,16 +192,16 @@ def clone_vm_w_static_ip(original_vm_resource):
                          deviceName=d["deviceName"]) \
       .execute()
     wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
-
   print("vm setting copied")
 
+  # delete original vm
   op = compute.instances() \
     .delete(project=project, zone=zone, instance=original_vm_resource["name"]) \
     .execute()
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
   print("vm deleted")
 
-  # create_new ip TODO
+  # create new ip address
   cloned_vm_ip_resource = create_static_ip(
     compute=compute,
     project=project,
@@ -214,6 +211,7 @@ def clone_vm_w_static_ip(original_vm_resource):
   )
   print("address created")
 
+  # create new ip VM
   cloned_vm_startup_script="""#! /bin/bash"""
   for d in cloned_vm_attached_disks:
     cloned_vm_startup_script=f"""{cloned_vm_startup_script} 
