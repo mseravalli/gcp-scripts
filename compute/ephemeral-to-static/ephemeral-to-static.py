@@ -23,13 +23,6 @@ flags.DEFINE_list("zones",
 # flags.mark_flag_as_required("zones")
  
 # TODO: better parametrisation 
-project = "test-seravalli-199408"
-region = "europe-west1"
-zone = region+"-c"
-disk_type = "pd-standard"
-attached_disk_name_1=f"google-{disk_type}-{int(time.time()*1E7)}"
-attached_disk_name_2=f"google-{disk_type}-{int(time.time()*1E7)}"
-
 compute = googleapiclient.discovery.build('compute', 'v1')
 
 def wait_for_operation(compute, project, operation, region=None, zone=None):
@@ -78,11 +71,16 @@ def create_static_ip(compute, project, region, subnet, ip_address):
     .get(project=project, region=region, address=ip_name) \
     .execute()
 
-  return ip_resource["selfLink"]
+  return ip_resource
   
-def create_vm(original_vm_name):
-  original_vm_config = {
-    "name": original_vm_name,
+def create_vm(vm_name, project, region, zone):
+
+  disk_type = "pd-standard"
+  attached_disk_name_1=f"google-{disk_type}-{int(time.time()*1E7)}"
+  attached_disk_name_2=f"google-{disk_type}-{int(time.time()*1E7)}"
+
+  vm_config = {
+    "name": vm_name,
     "zone": zone,
     "machineType": f"zones/{zone}/machineTypes/n1-standard-4",
     "networkInterfaces": [ 
@@ -99,9 +97,9 @@ def create_vm(original_vm_name):
     ],
     "disks": [
       { 
-        "deviceName": f"os-disk-{original_vm_name}",
+        "deviceName": f"os-disk-{vm_name}",
         "initializeParams": {
-          "diskName": f"os-disk-{original_vm_name}",
+          "diskName": f"os-disk-{vm_name}",
           "diskType": f"zones/{zone}/diskTypes/{disk_type}",
           "diskSizeGb": "20", 
           "sourceImage": "projects/debian-cloud/global/images/family/debian-8",
@@ -162,30 +160,37 @@ def create_vm(original_vm_name):
 
   compute = googleapiclient.discovery.build('compute', 'v1')
   op = compute.instances() \
-    .insert(project=project, zone=zone, body=original_vm_config) \
+    .insert(project=project, zone=zone, body=vm_config) \
     .execute()
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
   print("vm created")
 
-def clone_vm_w_static_ip(original_vm_name):
-  original_vm = compute.instances() \
-    .get(project=project, zone=zone, instance=original_vm_name) \
+  vm_resource = compute.instances() \
+    .get(project=project, zone=zone, instance=vm_name) \
     .execute()
+  return vm_resource
+
+def clone_vm_w_static_ip(original_vm_resource):
+  # original_vm = compute.instances() \
+  #   .get(project=project, zone=zone, instance=original_vm_name) \
+  #   .execute()
+  project = original_vm_resource["zone"].split('/')[6]
+  region = original_vm_resource["zone"].split('/')[-1][:-2]
+  zone = original_vm_resource["zone"].split('/')[-1]
 
   # copy original settings
-  cloned_vm_type = original_vm["machineType"]
-  cloned_vm_zone = original_vm["zone"]
-  cloned_vm_ip = original_vm["networkInterfaces"][0]["networkIP"]
-  cloned_vm_subnetwork = original_vm["networkInterfaces"][0]["subnetwork"]
-  cloned_vm_attached_disks = [d for d in original_vm["disks"] if not d["boot"]]
-  cloned_vm_boot_disk = [d for d in original_vm["disks"] if d["boot"]][0]
+  cloned_vm_type = original_vm_resource["machineType"].split("/")[-1]
+  cloned_vm_ip = original_vm_resource["networkInterfaces"][0]["networkIP"]
+  cloned_vm_subnetwork = original_vm_resource["networkInterfaces"][0]["subnetwork"]
+  cloned_vm_attached_disks = [d for d in original_vm_resource["disks"] if not d["boot"]]
+  cloned_vm_boot_disk = [d for d in original_vm_resource["disks"] if d["boot"]][0]
 
   # disable disks deletion at VM deletion
-  for d in original_vm["disks"]:
+  for d in original_vm_resource["disks"]:
     op = compute.instances() \
       .setDiskAutoDelete(project=project,
                          zone=zone,
-                         instance=original_vm_name,
+                         instance=original_vm_resource["name"],
                          autoDelete=False,
                          deviceName=d["deviceName"]) \
       .execute()
@@ -193,12 +198,14 @@ def clone_vm_w_static_ip(original_vm_name):
 
   print("vm setting copied")
 
-  op = compute.instances().delete(project=project, zone=zone, instance=original_vm_name).execute()
+  op = compute.instances() \
+    .delete(project=project, zone=zone, instance=original_vm_resource["name"]) \
+    .execute()
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
   print("vm deleted")
 
   # create_new ip TODO
-  cloned_vm_ip_url = create_static_ip(
+  cloned_vm_ip_resource = create_static_ip(
     compute=compute,
     project=project,
     region=region,
@@ -216,14 +223,14 @@ def clone_vm_w_static_ip(original_vm_name):
     """
 
   cloned_vm_config = {
-    "name": original_vm_name + "-w-static",
+    "name": original_vm_resource["name"] + "-w-static",
     "zone": zone,
-    "machineType": cloned_vm_type[cloned_vm_type.rfind("zones"):],
+    "machineType": f"zones/{zone}/machineTypes/{cloned_vm_type}",
     "networkInterfaces": [ 
       { 
         "network": "global/networks/default",
         "subnetwork": f"regions/{region}/subnetworks/default", 
-        "networkIP": cloned_vm_ip_url,
+        "networkIP": cloned_vm_ip_resource["selfLink"],
         "accessConfigs": [ 
           {
             "name": "External NAT",
@@ -232,7 +239,7 @@ def clone_vm_w_static_ip(original_vm_name):
         ],
       },
     ],
-    "disks": original_vm["disks"],
+    "disks": original_vm_resource["disks"],
     "metadata": { 
       "items": [
         {
@@ -251,9 +258,22 @@ def main():
   FLAGS = flags.FLAGS
   FLAGS(sys.argv)
 
-  vm_name = f"vm-{int(time.time()*1E7)}"
-  create_vm(vm_name)
-  clone_vm_w_static_ip(vm_name)
+  project = "test-seravalli-199408"
+  region = "europe-west1"
+  zone = region+"-c"
+ 
+  for i in range(0,1):
+    vm_name = f"vm-{int(time.time()*1E7)}"
+    create_vm(vm_name=vm_name, project=project, region=region, zone=zone)
+
+  vm_resources_raw = compute.instances() \
+    .list(project=project, zone=zone) \
+    .execute()
+
+  vm_resources = [vm for vm in vm_resources_raw["items"] if vm["name"].startswith("vm")]
+
+  for vm in vm_resources:
+    clone_vm_w_static_ip(original_vm_resource=vm)
 
 if __name__ == "__main__":
     main()
