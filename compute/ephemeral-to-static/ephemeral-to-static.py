@@ -178,24 +178,21 @@ def create_vm_config(original_vm_resource):
   zone = original_vm_resource["zone"].split('/')[-1]
   network = original_vm_resource["networkInterfaces"][0]["network"].split('/')[-1]
   subnet = original_vm_resource["networkInterfaces"][0]["subnetwork"].split('/')[-1]
+  ip_address = original_vm_resource["networkInterfaces"][0]["networkIP"]
 
   cloned_vm_type = original_vm_resource["machineType"].split("/")[-1]
-  cloned_vm_ip = original_vm_resource["networkInterfaces"][0]["networkIP"]
   cloned_vm_subnetwork = original_vm_resource["networkInterfaces"][0]["subnetwork"]
   cloned_vm_attached_disks = [d for d in original_vm_resource["disks"] if not d["boot"]]
   cloned_vm_boot_disk = [d for d in original_vm_resource["disks"] if d["boot"]][0]
 
-  # disable disks deletion at VM deletion
-  for d in original_vm_resource["disks"]:
-    op = compute.instances() \
-      .setDiskAutoDelete(project=project,
-                         zone=zone,
-                         instance=original_vm_resource["name"],
-                         autoDelete=False,
-                         deviceName=d["deviceName"]) \
-      .execute()
-    wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
-  print("vm setting copied")
+  # create new ip address
+  cloned_vm_ip_resource = create_static_ip(
+    compute=compute,
+    project=project,
+    region=region,
+    subnet=subnet,
+    ip_address=ip_address
+  )
 
   cloned_vm_startup_script="""#! /bin/bash"""
   for d in cloned_vm_attached_disks:
@@ -212,6 +209,7 @@ def create_vm_config(original_vm_resource):
     "networkInterfaces": [ 
       { 
         "network": f"global/networks/{network}",
+        "networkIP": cloned_vm_ip_resource["selfLink"],
         "subnetwork": f"regions/{region}/subnetworks/{subnet}", 
         "accessConfigs": [ 
           {
@@ -232,19 +230,25 @@ def create_vm_config(original_vm_resource):
     },
   }
   
+  print("vm setting copied")
+
   return cloned_vm_config
 
 def clone_vm_w_static_ip(original_vm_resource):
   project = original_vm_resource["zone"].split('/')[6]
   region = original_vm_resource["zone"].split('/')[-1][:-2]
   zone = original_vm_resource["zone"].split('/')[-1]
-  network = original_vm_resource["networkInterfaces"][0]["network"].split('/')[-1]
-  subnet = original_vm_resource["networkInterfaces"][0]["subnetwork"].split('/')[-1]
-  ip_address = original_vm_resource["networkInterfaces"][0]["networkIP"]
 
-  # copy original settings
-  cloned_vm_config = create_vm_config(original_vm_resource)
-
+  # disable disks deletion at VM deletion
+  for d in original_vm_resource["disks"]:
+    op = compute.instances() \
+      .setDiskAutoDelete(project=project,
+                         zone=zone,
+                         instance=original_vm_resource["name"],
+                         autoDelete=False,
+                         deviceName=d["deviceName"]) \
+      .execute()
+    wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
   # delete original vm
   op = compute.instances() \
     .delete(project=project, zone=zone, instance=original_vm_resource["name"]) \
@@ -252,15 +256,8 @@ def clone_vm_w_static_ip(original_vm_resource):
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
   print("vm deleted")
 
-  # create new ip address
-  cloned_vm_ip_resource = create_static_ip(
-    compute=compute,
-    project=project,
-    region=region,
-    subnet=subnet,
-    ip_address=ip_address
-  )
-  cloned_vm_config["networkInterfaces"][0]["networkIP"] = cloned_vm_ip_resource["selfLink"]
+  # copy original settings
+  cloned_vm_config = create_vm_config(original_vm_resource)
 
   op = compute.instances().insert(project=project, zone=zone, body=cloned_vm_config).execute()
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
