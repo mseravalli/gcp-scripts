@@ -11,18 +11,17 @@ import sys
 # of the credential:
 # $ export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/sa-python.json
 
-flags.DEFINE_list("project_ids",
-                  None,
-                  "The IDs of the project that need to be checked")
+flags.DEFINE_string("project_id",
+                    None,
+                    "The ID of the project that need to be checked")
 
-flags.DEFINE_list("zones",
-                  None,
-                  "The IDs of the project that need to be checked")
+flags.DEFINE_string("zone",
+                    None,
+                    "The zones that will be affected")
 
-# flags.mark_flag_as_required("project_ids")
-# flags.mark_flag_as_required("zones")
+flags.mark_flag_as_required("project_id")
+flags.mark_flag_as_required("zone")
  
-# TODO: better parametrisation 
 compute = googleapiclient.discovery.build('compute', 'v1')
 
 def wait_for_operation(compute, project, operation, region=None, zone=None):
@@ -270,13 +269,14 @@ def main():
   FLAGS = flags.FLAGS
   FLAGS(sys.argv)
 
-  project = "test-seravalli-199408"
-  region = "europe-west1"
-  zone = region+"-c"
+  project =  FLAGS.project_id
+  zone =  FLAGS.zone
+  region = zone[:-2]
  
-  for i in range(0,1):
-    vm_name = f"vm-{int(time.time()*1E7)}"
-    create_vm(vm_name=vm_name, project=project, region=region, zone=zone)
+  # VMs created from testing purposes
+  # for i in range(0,1):
+  #   vm_name = f"vm-{int(time.time()*1E7)}"
+  #   create_vm(vm_name=vm_name, project=project, region=region, zone=zone)
 
   vm_resources_raw = compute.instances() \
     .list(project=project, zone=zone) \
