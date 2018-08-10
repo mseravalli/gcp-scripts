@@ -23,9 +23,9 @@ reporting the alerts. To do this you first need to configure a webhook.
 1. On the top menu of the main window of the setting select `Webhooks`
 1. Click on `Add Webhook`
    1. Endpoint URL: the url of your Cloud Function can be found using `gcloud`
-   ```
-   $ gcloud beta functions describe json2xml --region europe-west1 | grep httpsTrigger -A 1
-   ```
+       ```
+      $ gcloud beta functions describe json2xml --region europe-west1 | grep httpsTrigger -A 1
+      ```
    1. Enter a Webhook Name
    1. Select Basic Auth and insert
       * Auth Username: `john`
@@ -33,12 +33,12 @@ reporting the alerts. To do this you first need to configure a webhook.
    1. Test Connection
    1. Verify in the Cloud Function Logs that the request is received and
 processed. The logs will contain 4 entries similar to the following ones
-   ```
-   D  json2xml 5vd2h696rc9b Function execution started json2xml
-   I  json2xml 5vd2h696rc9b { version: 'test', incident: { incident_id: 'test' } }
-   I  json2xml 5vd2h696rc9b <version>test</version> <incident> <incident_id>test</incident_id> </incident> 
-   D  json2xml 5vd2h696rc9b Function execution took 9 ms, finished with status code: 200 
-   ```
+      ```
+      D  json2xml 5vd2h696rc9b Function execution started json2xml
+      I  json2xml 5vd2h696rc9b { version: 'test', incident: { incident_id: 'test' } }
+      I  json2xml 5vd2h696rc9b <version>test</version> <incident> <incident_id>test</incident_id> </incident> 
+      D  json2xml 5vd2h696rc9b Function execution took 9 ms, finished with status code: 200 
+      ```
    1. Save
 
 Please remember to change the username and password to more secure ones for a
