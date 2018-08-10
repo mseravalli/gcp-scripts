@@ -9,7 +9,9 @@ body from JSON to XML.
 First deploy the function, this can be done by running from the directory where
 the funciton is stored
 
-``` $ ./setup.sh ```
+```
+$ ./setup.sh
+```
 
 ## Configure Stackdriver
 Once that is done you need to set Stackdriver to use your cloud function for
@@ -22,9 +24,9 @@ reporting the alerts. To do this you first need to configure a webhook.
 1. Click on `Add Webhook`
   1. Endpoint URL: the url of your Cloud Function can be found using `gcloud`
     
-    ```
-    $ gcloud beta functions describe json2xml --region europe-west1 | grep httpsTrigger -A 1
-    ```
+```
+$ gcloud beta functions describe json2xml --region europe-west1 | grep httpsTrigger -A 1
+```
 
   1. Enter a Webhook Name
   1. Select Basic Auth and insert
@@ -34,12 +36,12 @@ reporting the alerts. To do this you first need to configure a webhook.
   1. Verify in the Cloud Function Logs that the request is received and
 processed. The logs will contain 4 entries similar to the following ones
 
-    ```
-    D  json2xml 5vd2h696rc9b Function execution started json2xml
-    I  json2xml 5vd2h696rc9b { version: 'test', incident: { incident_id: 'test' } }
-    I  json2xml 5vd2h696rc9b <version>test</version> <incident> <incident_id>test</incident_id> </incident> 
-    D  json2xml 5vd2h696rc9b Function execution took 9 ms, finished with status code: 200 
-    ```
+```
+D  json2xml 5vd2h696rc9b Function execution started json2xml
+I  json2xml 5vd2h696rc9b { version: 'test', incident: { incident_id: 'test' } }
+I  json2xml 5vd2h696rc9b <version>test</version> <incident> <incident_id>test</incident_id> </incident> 
+D  json2xml 5vd2h696rc9b Function execution took 9 ms, finished with status code: 200 
+```
 
   1. Save
 
