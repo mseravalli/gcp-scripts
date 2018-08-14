@@ -28,6 +28,30 @@ function send(xml) {
   });
 }
 
+function modifyBody(oldFormat) {
+  console.log('original format');
+  console.log(oldFormat);
+  const newFormat = {
+    "event": {
+      "title": oldFormat.incident.condition_name
+        + "\n" + oldFormat.incident.summary
+        + "\n" + oldFormat.incident.url,
+      "timeStamp": oldFormat.incident.started_at,
+      "severity": "tbd",
+      "category": "tbd",
+      "application": "tbd",
+      "relatedCi": "tbd",
+      "causeCode": "tbd",
+      "project": "tbd",
+      "resource": oldFormat.incident.resource_id
+        + " - " + oldFormat.incident.resource_name
+    }
+  }
+  console.log('changed format');
+  console.log(newFormat);
+  return newFormat;
+}
+
 exports.json2xml = (req, res) => {
   var credentials = auth(req);
   if (!credentials || credentials.name !== 'john' || credentials.pass !== 'secret') {
