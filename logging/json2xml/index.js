@@ -2,11 +2,12 @@ const request = require("request");
 const converter = require('xml-js');
 const auth = require('basic-auth')
 
-function convert(req,res) {
-  json = req.body
+function convert(json) {
+  console.log('json to be converted');
   console.log(json);
   var options = {compact: true, ignoreComment: true, spaces: 4};
   var xml = converter.json2xml(json, options);
+  console.log('converted xml');
   console.log(xml);
   return xml;
 }
@@ -60,7 +61,9 @@ exports.json2xml = (req, res) => {
     console.log('Access denied');
     res.end('Access denied');
   } else {
-    xml = convert(req, res);
+    const jsonOld = req.body
+    const jsonNew = modifyBody(jsonOld)
+    const xml = convert(jsonNew);
     send(xml);
   }
 };
