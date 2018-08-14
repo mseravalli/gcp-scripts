@@ -1,13 +1,31 @@
-var converter = require('xml-js');
-var auth = require('basic-auth')
+const request = require("request");
+const converter = require('xml-js');
+const auth = require('basic-auth')
 
 function convert(req,res) {
   json = req.body
   console.log(json);
   var options = {compact: true, ignoreComment: true, spaces: 4};
-  var result = converter.json2xml(json, options);
-  console.log(result);
-  res.send(result);
+  var xml = converter.json2xml(json, options);
+  console.log(xml);
+  return xml;
+}
+
+function send(xml) {
+  console.log('sending request');
+  request.post({
+      url:"http://www.example.com:8000",
+      method:"POST",
+      headers:{
+          'Content-Type': 'application/xml',
+      },
+      body: xml
+  },
+  function(error, response, body){
+      console.log(response.statusCode);
+      console.log(body);
+      console.log(error);
+  });
 }
 
 exports.json2xml = (req, res) => {
@@ -18,7 +36,8 @@ exports.json2xml = (req, res) => {
     console.log('Access denied');
     res.end('Access denied');
   } else {
-    convert(req, res);
+    xml = convert(req, res);
+    send(xml);
   }
 };
 
