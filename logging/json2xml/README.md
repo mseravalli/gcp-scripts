@@ -1,8 +1,8 @@
 # Overview
 In this folder it is possible to find an example for how to use Cloud Functions
 to intercept alerts from Stackdriver and further process them. The Cloud
-Fuction deployed will accept authenticated requests and convert the requests'
-body from JSON to XML.
+Fuction deployed accepts authenticated requests, converts the requests'
+body from JSON to XML and forwards the newly created XML to a provided url.
 
 # Setup
 ## Create the Cloud Function
