@@ -1,0 +1,10 @@
+imports:
+- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py
+- path: hana_deployment.py
+
+resources:
+- name: hana_deployment
+  type: hana_deployment.py
+  properties:
+    project_id: sandbox-303kdn50
+
