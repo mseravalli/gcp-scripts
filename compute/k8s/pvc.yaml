@@ -1,0 +1,28 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+#  storageClassName: medium
+#  selector:
+#    matchLabels:
+#      release: "stable"
+#    matchExpressions:
+#      - {key: environment, operator: In, values: [dev]}
+
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: helloweb-disk
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 30Gi
+    

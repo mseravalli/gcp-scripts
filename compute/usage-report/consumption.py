@@ -35,6 +35,8 @@ def get_consumption(project_ids, zones):
     for z in zones]
   vms = [vm for r in results for vm in r["items"]]
  
+
+  print(vms)
   resources = [
     compute \
       .machineTypes() \
