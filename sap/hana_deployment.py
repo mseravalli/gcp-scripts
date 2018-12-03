@@ -20,13 +20,6 @@ def GenerateConfig(context):
 
   resources = []
 
-  # create bucket for installation files
-  bucket_name = project_id + '-hanainstallation09876493'
-  resources.append({
-    'name': bucket_name,
-    'type': 'storage.v1.bucket'
-  })
-
   # create service account for VM
   sa_name = project_id + '-sa-hana-vm'
   resources.append({
@@ -61,7 +54,7 @@ def GenerateConfig(context):
       'gcpIamPolicyPatch': {
         'add': [
           {
-            'role': 'roles/storage.objectAdmin',
+            'role': 'roles/storage.objectViewer',
             'members': [
               'serviceAccount:'+sa_name+'@'+project_id+'.iam.gserviceaccount.com'
             ]
@@ -70,11 +63,12 @@ def GenerateConfig(context):
       }
     },
     'metadata': {
-      'dependsOn': [bucket_name, sa_name, project_id + '-get-iam-policy']
+      'dependsOn': [sa_name, project_id + '-get-iam-policy']
     }
   }])
 
   # create hana installation
+  bucket_name = project_id + '-saprepo'
   hana_name = project_id + '-hana'
   resources.append({
     'name': hana_name,
@@ -82,7 +76,7 @@ def GenerateConfig(context):
     'properties': {
     'instanceName': hana_name + '-vm',
     'instanceType': 'n1-highmem-32',
-    'zone': 'europe-west4',
+    'zone': 'europe-west4-c',
     'subnetwork': 'default',
     'linuxImage': 'family/sles-12-sp2-sap',
     'linuxImageProject': 'suse-sap-cloud',
