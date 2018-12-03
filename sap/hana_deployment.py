@@ -74,6 +74,26 @@ def GenerateConfig(context):
     }
   }])
 
+  # create hana installation
+  hana_name = project_id + '-hana'
+  resources.append({
+    'name': hana_name,
+    'type': 'sap_hana.py',
+    'properties': {
+    'instanceName': hana_name + '-vm',
+    'instanceType': 'n1-highmem-32',
+    'zone': 'europe-west4',
+    'subnetwork': 'default',
+    'linuxImage': 'family/sles-12-sp2-sap',
+    'linuxImageProject': 'suse-sap-cloud',
+    'sap_hana_deployment_bucket': bucket_name,
+    'sap_hana_sid': 'ABC',
+    'sap_hana_instance_number': 0,
+    'sap_hana_sidadm_password': 'hUnter20',
+    'sap_hana_system_password': 'hUnter20',
+    'sap_hana_scaleout_nodes': 3
+    }
+  })
 
   return {'resources': resources}
 
