@@ -54,9 +54,21 @@ def GenerateConfig(context):
       'gcpIamPolicyPatch': {
         'add': [
           {
-            'role': 'roles/storage.objectViewer',
+            'role': 'roles/owner',
             'members': [
               'serviceAccount:'+sa_name+'@'+project_id+'.iam.gserviceaccount.com'
+            ]
+          },
+          {
+            'role': 'roles/owner',
+            'members': [
+              'serviceAccount:149382556458-compute@developer.gserviceaccount.com'
+            ]
+          },
+          {
+            'role': 'roles/owner',
+            'members': [
+              'serviceAccount:149382556458@cloudservices.gserviceaccount.com'
             ]
           }
         ]
@@ -80,12 +92,16 @@ def GenerateConfig(context):
     'subnetwork': 'default',
     'linuxImage': 'family/sles-12-sp2-sap',
     'linuxImageProject': 'suse-sap-cloud',
+    # 'serviceAccount' : sa_name,
     'sap_hana_deployment_bucket': bucket_name,
     'sap_hana_sid': 'ABC',
     'sap_hana_instance_number': 0,
     'sap_hana_sidadm_password': 'hUnter20',
     'sap_hana_system_password': 'hUnter20',
     'sap_hana_scaleout_nodes': 3
+    },
+    'metadata': {
+      'dependsOn': [sa_name, project_id + '-patch-iam-policy']
     }
   })
 
