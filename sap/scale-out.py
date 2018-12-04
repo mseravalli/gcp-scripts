@@ -69,23 +69,6 @@ cloned_vm["networkInterfaces"] = [
   },
 ]
 
-cloned_vm_startup_script="""#! /bin/bash"""
-for d in cloned_vm["disks"]:
-  if not d["boot"]:
-    cloned_vm_startup_script=f"""{cloned_vm_startup_script} 
-      sudo mkdir -p /mnt/disks/{d['deviceName']} ;
-      sudo mount /dev/disk/by-id/{d['deviceName']} /mnt/disks/{d['deviceName']}
-      sudo chmod 777 -R /mnt/disks/{d['deviceName']} ;
-    """
-
-cloned_vm["metadata"] = {}
-cloned_vm["metadata"]["items"] = [
-  {
-    "key": "startup-script",
-    "value": cloned_vm_startup_script
-  }
-]
-
 print("vm setting copied")
 
 # don't delete disks at VM deletion
