@@ -1,9 +1,11 @@
 #!/bin/bash
 
-echo 'Specify --start=1' > lastline
+LASTLINE=$(mktemp)
+
+echo 'Specify --start=1' > $LASTLINE
 
 while true
 do 
-  cat lastline | awk '{print $2}' | xargs -I {} bash -c "gcloud compute instances get-serial-port-output $1 --zone=europe-west1-c {} 2> lastline"
+  cat $LASTLINE | awk '{print $2}' | xargs -I {} bash -c "gcloud compute instances get-serial-port-output $1 --zone=europe-west4-c {} 2> $LASTLINE"
   sleep .5
 done
