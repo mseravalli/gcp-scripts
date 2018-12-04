@@ -1,0 +1,158 @@
+# ------------------------------------------------------------------------
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Description:  Google Cloud Platform - SAP Deployment Functions
+# Build Date:   Fri Nov 30 14:59:44 GMT 2018
+# ------------------------------------------------------------------------
+
+info:
+  title: IBM DB2 for SAP deployment template
+  description: Creates a single VM ready for IBM DB2 and optionally SAP NetWeaver
+
+required:
+- instanceName
+- instanceType
+- zone
+- subnetwork
+- linuxImage
+- linuxImageProject
+- db2SID
+- db2sidSize
+- db2homeSize
+- db2dumpSize
+- db2saptmpSize
+- db2logSize
+- db2sapdataSize
+
+properties:
+  zone:
+    description: Zone to create the resources in.
+    type: string
+
+  instanceName:
+    description: Hostname of the GCE instance
+    type: string
+    maxLength: 13
+
+  instanceType:
+    description: Machine type to deploy
+    type: string
+    pattern: "(n1-highmem-2|n1-highmem-4|n1-highmem-8|n1-highmem-16|n1-highmem-32|n1-highmem-64|n1-standard-2|n1-standard-4|n1-standard-8|n1-standard-16|n1-standard-32|n1-standard-64)"
+
+  subnetwork:
+    description: The sub network to deploy the instance in.
+    type: string
+
+  linuxImage:
+    description: Linux image name to use. family/sles-12-sp2-sap or family/sles-12-sp2-sap will use the latest SLES 12 SP2 or SP3 image.
+    type: string
+
+  linuxImageProject:
+    description: The project which the Linux image belongs to.
+    type: string
+
+  db2SID:
+    description: The database instance/SID name.
+    type: string
+    maxLength: 3
+
+  db2sidSize:
+    description: Size of /db2/[DBSID] - the root diretory of the database instance
+    type: integer
+    minimum: 8
+    default: 8
+  
+  db2homeSize:
+    description: Size of /db2/db2[dbsid] - the home directory of the database instance
+    type: integer
+    minimum: 8
+    default: 8
+
+  db2dumpSize:
+    description: Size of /db2/[DBSID]/db2dump - This directory holds dump files from DB2 which may be useful for diagnosing problems
+    type: integer
+    minimum: 8
+    default: 8
+
+  db2saptmpSize:
+    description: Size of /db2/[DBSID]/saptmp - Which holds the database temporary table space
+    type: integer
+    minimum: 8
+    default: 8
+
+  db2logSize:
+    description: Size of /db2/[DBSID]/logdir - Which holds the database transaction logs
+    type: integer
+    minimum: 8
+    default: 8
+
+  db2logSSD:
+    description: SSD toggle for the log drive. If set to true, the log disk will be SSD
+    default: true
+
+  db2sapdataSize:
+    description: Size of /db2/[DBSID]/sapdata - Which holds the database data files
+    type: integer
+    minimum: 30
+    default: 30
+
+  db2sapdataSSD:
+    description: SSD toggle for the data drive. If set to true, the data disk will be SSD
+    default: true
+
+  db2backupSize:
+    description: OPTIONAL - Size of the /db2backup volume. If set to 0, no disk will be created
+    type: integer
+    default: 0
+
+  usrsapSize:
+    description: OPTIONAL - Only required if you plan on deploying SAP NetWeaver on the same VM as the DB2 database instance. If set to 0, no disk will be created
+    type: integer
+    default: 0
+
+  sapmntSize:
+    description: OPTIONAL - Only required if you plan on deploying SAP NetWeaver on the same VM as the DB2 database instance. If set to 0, no disk will be created
+    type: integer
+    default: 0
+
+  swapSize:
+    description: OPTIONAL - Only required if you plan on deploying SAP NetWeaver on the same VM as the DB2 database instance. If set to 0, no disk will be created
+    type: integer
+    default: 0
+
+  otherHost:
+    description: OPTIONAL - In a HA environment this would be used to specify the other node in the cluster. 
+    type: string
+
+  networkTag:
+    description: OPTIONAL - A network tag can be associated to your instance on deployment. This can be used for firewalling or routing purposes
+    type: string
+
+  publicIP:
+    description: OPTIONAL - Defines whether a public IP address should be added to your VM. By default this is set to Yes. Note that if you set this to No without appropriate network nat and tags in place, there will be no route to the internet and thus the installation will fail.
+    type: boolean
+    default: true
+
+  sap_deployment_debug:
+    description: OPTIONAL - If this value is set to anything, the deployment will generates verbose deployment logs. Only turn this setting on if a Google support engineer asks you to enable debugging.
+    type: boolean
+    default: false
+
+  post_deployment_script:
+    description: OPTIONAL - gs:// or https:// location of a script to execute on the created VM's post deployment
+    type: string
+
+  serviceAccount:
+    description: OPTIONAL - Ability to define a custom service account instead of using the default project service account
+    type: string
