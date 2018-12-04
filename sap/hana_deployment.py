@@ -56,7 +56,7 @@ def GenerateConfig(context):
       'gcpIamPolicyPatch': {
         'add': [
           {
-            'role': 'roles/editor',
+            'role': 'roles/owner',
             'members': [
               # default agent for Compute
               'serviceAccount:' + project_number + '-compute@developer.gserviceaccount.com',
