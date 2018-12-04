@@ -16,18 +16,20 @@
 def GenerateConfig(context):
   """Generates config."""
 
-  project_id = context.properties['project_id']
+  project_id = context.env['project']
+  project_number = str(context.env['project_number'])
+  environment = str(context.properties.get('environment'))
 
   resources = []
 
   # create service account for VM
-  sa_name = project_id + '-sa-hana-vm'
+  sa_name = 'sa-' + project_number + '-' + environment + '-hana-vm'
   resources.append({
     'name': sa_name,
     'type': 'iam.v1.serviceAccount',
     'properties': {
-      'accountId': project_id + '-sa-hana-vm',
-      'displayName': project_id + '-sa-hana-vm',
+      'accountId': sa_name,
+      'displayName': sa_name,
       'projectId': project_id
     }
   })
@@ -54,21 +56,19 @@ def GenerateConfig(context):
       'gcpIamPolicyPatch': {
         'add': [
           {
-            'role': 'roles/owner',
+            'role': 'roles/editor',
             'members': [
-              'serviceAccount:'+sa_name+'@'+project_id+'.iam.gserviceaccount.com'
+              # default agent for Compute
+              'serviceAccount:' + project_number + '-compute@developer.gserviceaccount.com',
+              # custom service account hana vm
+              'serviceAccount:' + sa_name + '@' + project_id + '.iam.gserviceaccount.com'
             ]
           },
           {
-            'role': 'roles/owner',
+            'role': 'roles/compute.serviceAgent',
             'members': [
-              'serviceAccount:149382556458-compute@developer.gserviceaccount.com'
-            ]
-          },
-          {
-            'role': 'roles/owner',
-            'members': [
-              'serviceAccount:149382556458@cloudservices.gserviceaccount.com'
+              # default agent for DM
+              'serviceAccount:' + project_number + '@cloudservices.gserviceaccount.com'
             ]
           }
         ]
@@ -78,32 +78,6 @@ def GenerateConfig(context):
       'dependsOn': [sa_name, project_id + '-get-iam-policy']
     }
   }])
-
-  # create hana installation
-  bucket_name = project_id + '-saprepo'
-  hana_name = project_id + '-hana'
-  resources.append({
-    'name': hana_name,
-    'type': 'sap_hana.py',
-    'properties': {
-    'instanceName': hana_name + '-vm',
-    'instanceType': 'n1-highmem-32',
-    'zone': 'europe-west4-c',
-    'subnetwork': 'default',
-    'linuxImage': 'family/sles-12-sp2-sap',
-    'linuxImageProject': 'suse-sap-cloud',
-    # 'serviceAccount' : sa_name,
-    'sap_hana_deployment_bucket': bucket_name,
-    'sap_hana_sid': 'ABC',
-    'sap_hana_instance_number': 0,
-    'sap_hana_sidadm_password': 'hUnter20',
-    'sap_hana_system_password': 'hUnter20',
-    'sap_hana_scaleout_nodes': 3
-    },
-    'metadata': {
-      'dependsOn': [sa_name, project_id + '-patch-iam-policy']
-    }
-  })
 
   return {'resources': resources}
 
