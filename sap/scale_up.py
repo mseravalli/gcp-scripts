@@ -11,19 +11,9 @@ import time
 # of the credential:
 # $ export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/sa-hana-installer.json
 
-# compute = googleapiclient.discovery.build('compute', 'v1')
-# instances = compute.instances().list(project=project, zone=zone).execute()
-# instances_name = [i['name'] for i in instances['items']]
-# print(instances_name)
-
 project = "sandbox-303kdn50"
 region = "europe-west4"
 zone = region+"-c"
-
-disk_type = "pd-standard"
-
-attached_disk_name_1=f"google-{disk_type}-{int(time.time()*1E7)}"
-attached_disk_name_2=f"google-{disk_type}-{int(time.time()*1E7)}"
 
 original_vm_name = "sandbox-303kdn50-hana-vmw3"
 
