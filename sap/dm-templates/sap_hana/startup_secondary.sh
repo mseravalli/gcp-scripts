@@ -39,7 +39,6 @@ main::create_static_ip
 
 ## prepare for SAP HANA
 hdb::check_settings
-hdb::configure_sapsys_group
 hdb::set_kernel_parameters
 hdb::calculate_volume_sizes worker
 hdb::create_sap_data_log_volumes

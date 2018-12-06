@@ -196,15 +196,6 @@ hdb::create_install_cfg() {
 
 }
 
-# force creation of sapsys group and add sidadm to it
-hdb::configure_sapsys_group() {
-
-  main::errhandle_log_info "Creating sapsys group"
-  GROUP_ID="${VM_METADATA[sap_hana_sapsys_gid]}"
-  groupadd -g ${GROUP_ID} sapsys
-  SID_ADM_USER="$(echo "${VM_METADATA[sap_hana_sid]}" | awk '{print tolower($0)}')adm"
-  usermod -g sapsys ${SID_ADM_USER}
-}
 
 hdb::extract_media() {
 
