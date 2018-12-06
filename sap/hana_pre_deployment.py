@@ -13,6 +13,16 @@
 # limitations under the License.
 """Creates the infrastructure and deploys HANA"""
 
+COMPUTE_URL_BASE = 'https://www.googleapis.com/compute/v1/'
+
+def GlobalComputeUrl(project, collection, name):
+  """Generate global compute URL."""
+  return ''.join([COMPUTE_URL_BASE, 'projects/', project, '/global/', collection, '/', name])
+
+def RegionalComputeUrl(project, region, collection, name):
+  """Generate regional compute URL."""
+  return ''.join([COMPUTE_URL_BASE, 'projects/', project, '/regions/', region, '/', collection, '/', name])
+
 def GenerateConfig(context):
   """Generates config."""
 
@@ -20,16 +30,20 @@ def GenerateConfig(context):
   project_number = str(context.env['project_number'])
   environment = str(context.properties.get('environment'))
 
+  sa_hana_compute = 'sa-' + project_number + '-' + environment + '-hana-vm'
+  sa_hana_compute_full = sa_hana_compute + '@' + project_id + '.iam.gserviceaccount.com'
+  sa_compute_default_full = project_number + '-compute' + '@developer.gserviceaccount.com'
+  sa_dm_default_full = project_number + '@cloudservices.gserviceaccount.com'
+
   resources = []
 
   # create service account for VM
-  sa_name = 'sa-' + project_number + '-' + environment + '-hana-vm'
   resources.append({
-    'name': sa_name,
+    'name': sa_hana_compute,
     'type': 'iam.v1.serviceAccount',
     'properties': {
-      'accountId': sa_name,
-      'displayName': sa_name,
+      'accountId': sa_hana_compute,
+      'displayName': sa_hana_compute,
       'projectId': project_id
     }
   })
@@ -58,26 +72,44 @@ def GenerateConfig(context):
           {
             'role': 'roles/owner',
             'members': [
-              # default agent for Compute
-              'serviceAccount:' + project_number + '-compute@developer.gserviceaccount.com',
-              # custom service account hana vm
-              'serviceAccount:' + sa_name + '@' + project_id + '.iam.gserviceaccount.com'
+              'serviceAccount:' + sa_compute_default_full,
+              'serviceAccount:' + sa_hana_compute_full
             ]
           },
           {
             'role': 'roles/compute.serviceAgent',
             'members': [
               # default agent for DM
-              'serviceAccount:' + project_number + '@cloudservices.gserviceaccount.com'
+              'serviceAccount:' + sa_dm_default_full
             ]
           }
         ]
       }
     },
     'metadata': {
-      'dependsOn': [sa_name, project_id + '-get-iam-policy']
+      'dependsOn': [sa_hana_compute, project_id + '-get-iam-policy']
     }
   }])
+
+  # update firewalls
+  resources.append({
+    'name': 'hana-fw-rule',
+    'type': 'compute.v1.firewall',
+    'properties': {
+      #'network': '$(ref.{{' + context.env['deployment'] +'}}-network.selfLink)',
+      'network': GlobalComputeUrl(project_id, 'networks', 'default'),
+      'direction': 'INGRESS',
+      'sourceRanges': [
+        '0.0.0.0/0'
+      ],
+      'allowed': [{
+        'IPProtocol': 'all'
+      }],
+      'targetServiceAccounts': [
+        '149382556458-compute@developer.gserviceaccount.com'
+      ]
+    }
+  })
 
   return {'resources': resources}
 

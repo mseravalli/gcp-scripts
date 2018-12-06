@@ -1,10 +1,11 @@
 imports:
-- path: sap_hana.py
-- path: hana_deployment.py
+- path: hana_pre_deployment.py
+- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py
+- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nw/sap_nw.py
 
 resources:
-- name: hana_deployment
-  type: hana_deployment.py
+- name: hana_pre_deployment
+  type: hana_pre_deployment.py
   properties:
     environment: test
 
