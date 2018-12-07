@@ -19,7 +19,7 @@ region = "europe-west4"
 zone = region+"-c"
 sys_nr="36"
 passwd="hUk27d.er20"
-instance_name="marcosturfdonttuch"
+instance_name="sape36vm"
 worker = instance_name + 'w1'
 new_worker = instance_name + 'w2'
 
