@@ -37,7 +37,7 @@ def wait_for_operation(compute, project, zone, operation):
         raise Exception(result['error'])
       return result
     
-    time.sleep(1)
+    time.sleep(2)
 
 def stop_hana():
   subprocess.call('./hana_stop.sh')
@@ -160,4 +160,5 @@ create_worker_snapshot()
 create_disks_for_new_worker()
 create_new_worker()
 start_worker()
+time.sleep(10)
 add_hana_node()
