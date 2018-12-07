@@ -70,6 +70,8 @@ hana_operations::copy_public_key_to_worker() {
 
   #root@Worker
   gcloud compute ssh ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- "sudo su -c 'echo ${ROOT_MASTER_PUB_KEY} >> ~/.ssh/authorized_keys'"
+ 
+  # /usr/local/google-cloud-sdk/bin/gcloud --quiet compute instances add-metadata marcosturfdonttuchw1 --metadata 'ssh-keys=root:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKH+Bl+zphheUmqdssz9//DxY81IDNJPTK2xeiShCdybJ0g5p47YARHciYJJkVlREUZ5RwEy8e/0IT301t+O+P7Lb5JIf1i3D5Yw2zbXOa4eZ6Ksd8+syg9MWMgOqGzLi6bV1Lo9epZo48zIuc+gq90Ae1TPbhxQ8xCDOzGXQhTAqdNOQY72/OXNhtkWN8bygs/n7wf0GB3z8lzD9z91y1xjCcV8grgQIK5P60Ltgk3EXbkdhgsPxXkkJC8ngK8YJTBFcwwnAW/gq2PwCpWIJiC7Nrj+kErpozzIUAZOOuNK7hUSMQu1bLv7SRkdYTsGHJIYo7Hl33xf4G3CrAzeTZ root@marcosturfdonttuch'
 
   # accept new signature of new worker
   gcloud compute ssh ${VM_NAME} -- "sudo su -c 'ssh -oStrictHostKeyChecking=no ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- exit'"
@@ -79,23 +81,27 @@ hana_operations::copy_public_key_to_worker() {
 hana_operations::add_node() {
   #root@Master add node 
   TMP_FILE=$(mktemp)
+#   cat << EOF > ${TMP_FILE}
+# <?xml version="1.0" encoding="UTF-8"?>
+# <Passwords>
+#   <password>
+#     <![CDATA[${PASSWD}]]>
+#   </password>
+#   <sapadm_password>
+#     <![CDATA[${PASSWD}]]>
+#   </sapadm_password>
+#   <system_user_password>
+#     <![CDATA[${PASSWD}]]>
+#   </system_user_password>
+# </Passwords>
+# EOF
+  TMP_FILE=$(mktemp)
   cat << EOF > ${TMP_FILE}
-<?xml version='1.0' encoding='UTF-8'?>
-<Passwords>
-  <password>
-    <![CDATA[${PASSWD}]]>
-  </password>
-  <sapadm_password>
-    <![CDATA[${PASSWD}]]>
-  </sapadm_password>
-  <system_user_password>
-    <![CDATA[${PASSWD}]]>
-  </system_user_password>
-</Passwords>
+<?xml version="1.0" encoding="UTF-8"?><Passwords><password><![CDATA[${PASSWD}]]></password><sapadm_password><![CDATA[${PASSWD}]]></sapadm_password><system_user_password><![CDATA[${PASSWD}]]></system_user_password></Passwords>
 EOF
 
   gcloud compute scp ${TMP_FILE} ${VM_NAME}:/tmp/tmp.tmp 
-  gcloud compute ssh ${VM_NAME} -- "chmod 644 /tmp/tmp.tmp"
+  gcloud compute ssh ${VM_NAME} -- "chmod 777 /tmp/tmp.tmp"
   gcloud compute ssh ${VM_NAME} -- "sudo su -c 'cat /tmp/tmp.tmp | /hana/shared/${SID}/hdblcm/hdblcm --action=add_hosts --addhosts=${VM_NAME}w${NEW_INSTANCE_NUMBER} --certificates_hostmap=${VM_NAME}w${NEW_INSTANCE_NUMBER}=${VM_NAME}w${NEW_INSTANCE_NUMBER} --root_user=root --listen_interface=global --read_password_from_stdin=xml -b'"
   gcloud compute ssh ${VM_NAME} -- rm -f /tmp/tmp.tmp
   rm -f $TMP_FILE
