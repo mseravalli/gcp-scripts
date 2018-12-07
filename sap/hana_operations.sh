@@ -39,6 +39,9 @@ hana_operations::wait_for_db_operation() {
   done
 }
 
+hana_operations::check_db_status() {
+  gcloud compute ssh ${VM_NAME} -- "sudo su - e36adm -c 'sapcontrol -nr ${SYS_NR} -function GetSystemInstanceList'"
+}
 hana_operations::stop_db() {
   #sidadm@Master
   gcloud compute ssh ${VM_NAME} -- "sudo su - e36adm -c 'sapcontrol -nr ${SYS_NR} -function StopSystem'"
