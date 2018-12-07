@@ -11,11 +11,6 @@ import time
 # of the credential:
 # $ export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/sa-hana-installer.json
 
-# compute = googleapiclient.discovery.build('compute', 'v1')
-# instances = compute.instances().list(project=project, zone=zone).execute()
-# instances_name = [i['name'] for i in instances['items']]
-# print(instances_name)
-
 project="sandbox-303kdn50"
 network_name="default"
 subnet="default"
@@ -49,27 +44,40 @@ instances = [
 ]
 
 # create new disks name does not matter, matters how you mount them
+operations = []
 for instance in instances: 
   body ={
     "type": "projects/sandbox-303kdn50/zones/europe-west4-c/diskTypes/pd-ssd", 
-    "sourceSnapshot": 'projects/sandbox-303kdn50/global/snapshots/'+ instance+'-'+backup_id,
+    "sourceSnapshot": 'projects/sandbox-303kdn50/global/snapshots/'+ instance+'-pdssd-snapshot',
     "name": instance+'-pdssd-restored',
     "sizeGb": "1750" 
   } 
   op = compute.disks().insert(project=project, body=body, zone=zone).execute()
+  operations.append(op)
+
+for op in operations:
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
 
 # shutdown VM
+operations = []
 for instance in instances: 
   op = compute.instances().stop(project=project, zone=zone, instance=instance).execute()
+  operations.append(op)
+
+for op in operations:
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
 
 # deatach disks from VMs
+operations = []
 for instance in instances: 
   op = compute.instances().detachDisk(project=project, zone=zone, instance=instance, deviceName=instance+'-pdssd').execute()
+  operations.append(op)
+
+for op in operations:
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
 
 # attach disks from snapshots
+operations = []
 for instance in instances: 
   body = {
     'deviceName': instance + '-pdssd',
@@ -77,9 +85,16 @@ for instance in instances:
     'source': 'projects/sandbox-303kdn50/zones/europe-west4-c/disks/' + instance + '-pdssd-restored'
   }
   op = compute.instances().attachDisk(project=project, zone=zone, instance=instance, body=body).execute()
+  operations.append(op)
+
+for op in operations:
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
 
 # start VM
+operations = []
 for instance in instances: 
   op = compute.instances().start(project=project, zone=zone, instance=instance).execute()
+  operations.append(op)
+
+for op in operations:
   wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
