@@ -32,7 +32,7 @@ def wait_for_operation(compute, project, zone, operation):
                 raise Exception(result['error'])
             return result
 
-        time.sleep(1)
+        time.sleep(2)
 
 original_vm = compute.instances() \
   .get(project=project, zone=zone, instance=original_vm_name).execute()
