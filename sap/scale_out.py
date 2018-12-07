@@ -41,13 +41,14 @@ def wait_for_operation(compute, project, zone, operation):
 
 def stop_hana():
   subprocess.call('./hana_stop.sh')
-  print(f'database stopped')
+  print(f'hana stopped')
 
 def start_hana():
   return 
 
-def add_node():
-  return 
+def add_hana_node():
+  subprocess.call('./hana_add_node.sh')
+  print(f'hana node added')
 
 # copy the worker
 def stop_worker():
@@ -159,3 +160,4 @@ create_worker_snapshot()
 create_disks_for_new_worker()
 create_new_worker()
 start_worker()
+add_hana_node()
