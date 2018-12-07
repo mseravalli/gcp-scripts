@@ -132,10 +132,12 @@ def create_new_worker():
   new_worker_description["disks"] = [{
     'deviceName': new_worker+'-boot',
     'source': f'https://www.googleapis.com/compute/v1/projects/sandbox-303kdn50/zones/europe-west4-c/disks/{new_worker}-boot',
+    'autoDelete': True,
     'boot': True
   },{
     'deviceName': new_worker+'-pdssd',
     'source': f'https://www.googleapis.com/compute/v1/projects/sandbox-303kdn50/zones/europe-west4-c/disks/{new_worker}-pdssd',
+    'autoDelete': True,
     'boot': False
   }]
 
@@ -161,5 +163,8 @@ stop_hana()
 create_worker_snapshot()
 create_disks_for_new_worker()
 create_new_worker()
-time.sleep(10)
+
+# for real production usage this threshold need to be validated
+# TODO: create a function that waits until hana is up and running 
+time.sleep(300)
 add_hana_node()
