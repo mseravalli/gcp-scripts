@@ -21,7 +21,7 @@ NETWORK_NAME="default"
 SUBNET="default"
 ZONE="europe-west4-c"
 TAG="sap-hana"
-SID=E36
+SID="E36"
 VM_NAME="marcosturfdonttuch"
 SYS_NR=36
 PASSWD="hUk27d.er20"
@@ -70,6 +70,9 @@ hana_operations::copy_public_key_to_worker() {
 
   #root@Worker
   gcloud compute ssh ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- "sudo su -c 'echo ${ROOT_MASTER_PUB_KEY} >> ~/.ssh/authorized_keys'"
+
+  # accept new signature of new worker
+  gcloud compute ssh ${VM_NAME} -- "sudo su -c 'ssh -oStrictHostKeyChecking=no ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- exit'"
 }
 
 
