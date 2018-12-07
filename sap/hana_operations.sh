@@ -111,11 +111,12 @@ hana_operations::add_node() {
 <?xml version="1.0" encoding="UTF-8"?><Passwords><password><![CDATA[${PASSWD}]]></password><sapadm_password><![CDATA[${PASSWD}]]></sapadm_password><system_user_password><![CDATA[${PASSWD}]]></system_user_password></Passwords>
 EOF
 
-  gcloud compute scp ${TMP_FILE} ${VM_NAME}:/tmp/tmp.tmp 
-  gcloud compute ssh ${VM_NAME} -- "chmod 777 /tmp/tmp.tmp"
-  gcloud compute ssh ${VM_NAME} -- "sudo su -c 'cat /tmp/tmp.tmp | /hana/shared/${SID}/hdblcm/hdblcm --action=add_hosts --addhosts=${VM_NAME}w${NEW_INSTANCE_NUMBER} --certificates_hostmap=${VM_NAME}w${NEW_INSTANCE_NUMBER}=${VM_NAME}w${NEW_INSTANCE_NUMBER} --root_user=root --listen_interface=global --read_password_from_stdin=xml -b'"
-  gcloud compute ssh ${VM_NAME} -- rm -f /tmp/tmp.tmp
+  gcloud compute scp ${TMP_FILE} ${VM_NAME}w${NEW_INSTANCE_NUMBER}:/tmp/tmp.tmp 
+  gcloud compute ssh ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- "chmod 777 /tmp/tmp.tmp"
+  gcloud compute ssh ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- "sudo su -c 'cat /tmp/tmp.tmp | /hana/shared/${SID}/hdblcm/hdblcm --action=add_hosts --addhosts=${VM_NAME}w${NEW_INSTANCE_NUMBER} --certificates_hostmap=${VM_NAME}w${NEW_INSTANCE_NUMBER}=${VM_NAME}w${NEW_INSTANCE_NUMBER} --root_user=root --listen_interface=global --read_password_from_stdin=xml -b'"
+  gcloud compute ssh ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- rm -f /tmp/tmp.tmp
   rm -f $TMP_FILE
+  echo "hana node added"
 }
 
 
