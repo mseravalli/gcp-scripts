@@ -1,11 +1,11 @@
 #!/bin/bash -x
 
-export PROJECT="sandbox-303kdn50"
-export INSTANCE_NAME="nat-vm"
-export NETWORK_NAME="default"
-export SUBNET="default"
-export ZONE="europe-west4-c"
-export TAG="sap-hana"
+PROJECT="sandbox-303kdn50"
+INSTANCE_NAME="nat-vm"
+NETWORK_NAME="default"
+SUBNET="default"
+ZONE="europe-west4-c"
+TAG="sap-hana"
 # gcloud auth login
 gcloud config set project $PROJECT
 
@@ -44,14 +44,8 @@ gcloud config set project $PROJECT
 # gcloud compute firewall-rules create allow-ssh --network ${NETWORK_NAME} \
 #   --allow tcp:22 --source-ranges 0.0.0.0/0 --target-tags "${TAG}"
 
-# allow internet to connect to hana
-# gcloud compute --project=sandbox-303kdn50 firewall-rules create \ 
-#   allow-hana-connection --direction=INGRESS --priority=1000 \
-#   --network=default --action=ALLOW --rules=all --source-ranges=0.0.0.0/0 \
-#   --target-service-accounts=149382556458-compute@developer.gserviceaccount.com
-
-gsutil -m rm -r gs://sandbox-303kdn50-deployment-scripts/dm-templates
-gsutil -m cp -R ./dm-templates gs://sandbox-303kdn50-deployment-scripts 
+# gsutil -m rm -r gs://sandbox-303kdn50-deployment-scripts/dm-templates
+# gsutil -m cp -R ./dm-templates gs://sandbox-303kdn50-deployment-scripts 
 
 # ensure that the service account has all the necessary permissions
 gcloud deployment-manager deployments delete hana-installation --quiet
