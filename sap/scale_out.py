@@ -72,6 +72,7 @@ def create_worker_snapshot():
     print('error calling the API will exit')
     return 
 
+  stop_worker()
   operations = []
   body ={
     'name': instance_name + '-worker-boot'
@@ -89,6 +90,8 @@ def create_worker_snapshot():
 
   for op in operations:
     wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
+
+  start_worker()
   print('disks copied')
 
 def create_disks_for_new_worker():
@@ -155,10 +158,8 @@ def create_new_worker():
 
 # acutal work :)
 stop_hana()
-stop_worker()
 create_worker_snapshot()
 create_disks_for_new_worker()
 create_new_worker()
-start_worker()
 time.sleep(10)
 add_hana_node()
