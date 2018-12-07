@@ -43,6 +43,7 @@ hana_operations::stop_db() {
   #sidadm@Master
   gcloud compute ssh ${VM_NAME} -- "sudo su - e36adm -c 'sapcontrol -nr ${SYS_NR} -function StopSystem'"
   hana_operations::wait_for_db_operation "GRAY"
+  echo "hana stopped"
 }
 
 hana_operations::exportfs() {
@@ -50,18 +51,23 @@ hana_operations::exportfs() {
   gcloud compute ssh ${VM_NAME} -- "sudo su -c 'echo \"/hana/shared ${VM_NAME}w${NEW_INSTANCE_NUMBER}(rw,no_root_squash,sync,no_subtree_check)\" >> /etc/exports'"
   gcloud compute ssh ${VM_NAME} -- "sudo su -c 'echo \"/hanabackup ${VM_NAME}w${NEW_INSTANCE_NUMBER}(rw,no_root_squash,sync,no_subtree_check)\" >> /etc/exports'"
   gcloud compute ssh ${VM_NAME} -- "sudo su -c 'exportfs -rv'"
+  echo "fs exported"
 }
 
 hana_operations::mount_shared() {
   #root@Worker node 
   gcloud compute ssh ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- "sudo su -c 'mount -av'"
   gcloud compute ssh ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- "sudo su -c 'cd /hana/shared/${SID}/global/hdb/install/bin ; yes | ./hdbremovehost --keep_user_home_dir --keep_user --skip_modify_sudoers --force '"
+
+  echo "share mounted"
 }
 
 hana_operations::start_db() {
   #sidadm@Master
   gcloud compute ssh ${VM_NAME} -- "sudo su - e36adm -c 'sapcontrol -nr ${SYS_NR} -function StartSystem'"
   hana_operations::wait_for_db_operation "GREEN"
+
+  echo "hana started"
 }
 
 hana_operations::copy_public_key_to_worker() {
@@ -75,6 +81,8 @@ hana_operations::copy_public_key_to_worker() {
 
   # accept new signature of new worker
   gcloud compute ssh ${VM_NAME} -- "sudo su -c 'ssh -oStrictHostKeyChecking=no ${VM_NAME}w${NEW_INSTANCE_NUMBER} -- exit'"
+
+  echo "keys copied"
 }
 
 
