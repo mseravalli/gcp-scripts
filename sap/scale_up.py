@@ -15,7 +15,8 @@ project = "sandbox-303kdn50"
 region = "europe-west4"
 zone = region+"-c"
 
-original_vm_name = "sandbox-303kdn50-hana-vmw3"
+original_vm_name = "sape36vmw1"
+new_MachineType = 'n1-highmem-32'
 
 compute = googleapiclient.discovery.build('compute', 'v1')
 
@@ -41,15 +42,13 @@ original_vm = compute.instances() \
 cloned_vm = {}
 cloned_vm["name"] = original_vm_name
 cloned_vm["zone"] = original_vm["zone"]
-cloned_vm["machineType"] = cloned_vm["zone"] + "/machineTypes/n1-highmem-64"
-cloned_vm["network"] = original_vm["networkInterfaces"][0]["network"]
-cloned_vm["subnetwork"] = original_vm["networkInterfaces"][0]["subnetwork"]
+cloned_vm["machineType"] = cloned_vm["zone"] + "/machineTypes/" + new_MachineType
 cloned_vm["disks"] = original_vm["disks"]
 
 cloned_vm["networkInterfaces"] = [
   { 
-    "network": cloned_vm["network"],
-    "subnetwork": cloned_vm["subnetwork"],
+    "network": original_vm["networkInterfaces"][0]["network"],
+    "subnetwork": original_vm["networkInterfaces"][0]["subnetwork"],
     "accessConfigs": [ 
       {
         "name": "External NAT",
@@ -59,6 +58,7 @@ cloned_vm["networkInterfaces"] = [
   },
 ]
 
+# TODO store this configuration on disk in case of issues
 print("vm setting copied")
 
 # don't delete disks at VM deletion
