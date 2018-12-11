@@ -538,6 +538,26 @@ hdb::config_backint() {
   hdb::set_parameters global.ini persistence 'basepath_catalogbackup' /hanabackup/log/"${VM_METADATA[sap_hana_sid]}"
 }
 
+hdb::update_authorized_keys() {
+	main::errhandle_log_info "Updating ssh authorized keys"
+  max_attempts=60
+  for i in $(seq 1 $max_attempts); do
+    main::errhandle_log_info "Attempt ${i} of ${max_attempts}"
+
+    PUB_KEY=$( main::get_metadata "ssh-keys" | grep -e '^root:' ) 
+    if [[ $( echo $PUB_KEY | wc -c ) -gt 1 ]]; then
+      echo $PUB_KEY | sed 's/^root://g' >> /root/.ssh/authorized_keys
+
+      main::errhandle_log_info "Key updated"
+      return
+    fi
+
+    sleep 10
+  done
+  
+  main::errhandle_log_warning "Failed to update the ssh keys. There might be issues with node addition."
+
+}
 
 hdb::install_worker_sshkeys() {
   if [ ! "${VM_METADATA[sap_hana_scaleout_nodes]}" = "0" ]; then

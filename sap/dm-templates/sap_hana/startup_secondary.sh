@@ -43,6 +43,7 @@ hdb::set_kernel_parameters
 hdb::calculate_volume_sizes worker
 hdb::create_sap_data_log_volumes
 hdb::mount_nfs
+hdb::update_authorized_keys
 
 ## Post deployment & installation cleanup
 main::complete
