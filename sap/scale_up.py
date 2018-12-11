@@ -38,25 +38,22 @@ def wait_for_operation(compute, project, zone, operation):
 original_vm = compute.instances() \
   .get(project=project, zone=zone, instance=original_vm_name).execute()
 
-# copy original settings
-cloned_vm = {}
-cloned_vm["name"] = original_vm_name
-cloned_vm["zone"] = original_vm["zone"]
-cloned_vm["machineType"] = cloned_vm["zone"] + "/machineTypes/" + new_MachineType
-cloned_vm["disks"] = original_vm["disks"]
+print(original_vm)
 
-cloned_vm["networkInterfaces"] = [
-  { 
-    "network": original_vm["networkInterfaces"][0]["network"],
-    "subnetwork": original_vm["networkInterfaces"][0]["subnetwork"],
-    "accessConfigs": [ 
-      {
-        "name": "External NAT",
-        "type": "ONE_TO_ONE_NAT",
-      },
-    ],
-  },
-]
+# copy original settings
+cloned_vm = original_vm
+cloned_vm["machineType"] = cloned_vm["zone"] + "/machineTypes/" + new_MachineType
+cloned_vm["networkInterfaces"] = [{
+  "network": original_vm["networkInterfaces"][0]["network"],
+  "subnetwork": original_vm["networkInterfaces"][0]["subnetwork"],
+  "accessConfigs": [ 
+    {
+      "name": "External NAT",
+      "type": "ONE_TO_ONE_NAT",
+    },
+  ],
+}]
+
 
 # TODO store this configuration on disk in case of issues
 print("vm setting copied")
