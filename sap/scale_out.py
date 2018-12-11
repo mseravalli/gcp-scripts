@@ -98,8 +98,8 @@ def create_disks_for_new_worker():
   # TODO skip if the disks are already present
   operations = []
   body ={
-    "type": "projects/sandbox-303kdn50/zones/europe-west4-c/diskTypes/pd-ssd", 
-    "sourceSnapshot": 'projects/sandbox-303kdn50/global/snapshots/'+ instance_name + '-worker-boot',
+    "type": "projects/"+project+"/zones/europe-west4-c/diskTypes/pd-ssd", 
+    "sourceSnapshot": 'projects/'+project+'/global/snapshots/'+ instance_name + '-worker-boot',
     "autoDelete": True,
     "name": new_worker+'-boot'
   } 
@@ -107,8 +107,8 @@ def create_disks_for_new_worker():
   operations.append(op)
 
   body ={
-    "type": "projects/sandbox-303kdn50/zones/europe-west4-c/diskTypes/pd-ssd", 
-    "sourceSnapshot": 'projects/sandbox-303kdn50/global/snapshots/'+ instance_name + '-worker-pdssd',
+    "type": "projects/"+project+"/zones/europe-west4-c/diskTypes/pd-ssd", 
+    "sourceSnapshot": 'projects/'+project+'/global/snapshots/'+ instance_name + '-worker-pdssd',
     "autoDelete": True,
     "name": new_worker+'-pdssd'
   } 
@@ -131,12 +131,12 @@ def create_new_worker():
   new_worker_description["subnetwork"] = worker_description["networkInterfaces"][0]["subnetwork"]
   new_worker_description["disks"] = [{
     'deviceName': new_worker+'-boot',
-    'source': f'https://www.googleapis.com/compute/v1/projects/sandbox-303kdn50/zones/europe-west4-c/disks/{new_worker}-boot',
+    'source': f'https://www.googleapis.com/compute/v1/projects/{project}/zones/europe-west4-c/disks/{new_worker}-boot',
     'autoDelete': True,
     'boot': True
   },{
     'deviceName': new_worker+'-pdssd',
-    'source': f'https://www.googleapis.com/compute/v1/projects/sandbox-303kdn50/zones/europe-west4-c/disks/{new_worker}-pdssd',
+    'source': f'https://www.googleapis.com/compute/v1/projects/{project}/zones/europe-west4-c/disks/{new_worker}-pdssd',
     'autoDelete': True,
     'boot': False
   }]
