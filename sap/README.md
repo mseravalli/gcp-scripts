@@ -7,7 +7,7 @@ In orer to be able to run the scripts present in this repository it is necessary
 ### Service Accounts
 In a Shared VPC environment the service account that will run the Deployment Manager (by default `{project_number}@cloudservices.gserviceaccount.com`), needs to have `Compute Admin` in the service project and `Compute Network Admin` on in the host project.
 
-Additionally, also the service account that will run on the VMs needs to be given  and `Compute Instance Admin` in the service project and `Compute Network User` in the host project.
+Additionally, also the service account that will run on the VMs (by default `{project_number}-compute@developer.gserviceaccount.com`) needs to be given  and `Compute Instance Admin` in the service project and `Compute Network User` in the host project.
 
 ## Setup
 First update the file `setup.sh`. 
