@@ -1,11 +1,8 @@
-# SAP installation
-This readme describes how it is possible to install SAP Hana and the related components.
+# SAP Hana Installation
+Hana will be setup using the standard scripts and templates provided by GCP.
 
 ## Prerequisites
 In orer to be able to run the scripts present in this repository it is necessary to have Google Cloud SDK installed on the developers' workstation.
-
-# SAP Hana
-Hana will be setup using the standard scripts and templates provided by GCP.
 
 ## Setup
 First update the file `setup.sh`. 
