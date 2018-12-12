@@ -71,6 +71,7 @@ To run the scale up it is necessary to run the following command.
 $ scale_up.py
 ```
 ### How does it work?
+The script copies the current configuration of a VM and creates a new VM with the same configuration. The reason of performing such an operations instead of changing directly the VM size, is to allow to perform extra additional checks and possible steps before the VMs comes up to life, e.g. check the processor architecture, add NICs etc.
 
 ## Scale out
 ### Setup
