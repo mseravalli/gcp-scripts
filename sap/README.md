@@ -4,6 +4,11 @@ Hana will be setup using the standard scripts and templates provided by GCP.
 ## Prerequisites
 In orer to be able to run the scripts present in this repository it is necessary to have Google Cloud SDK installed on the developers' workstation.
 
+### Service Accounts
+In a Shared VPC environment the service account that will run the Deployment Manager (by default `{project_number}@cloudservices.gserviceaccount.com`), needs to have `Compute Admin` in the service project and `Compute Network Admin` on in the host project.
+
+Additionally, also the service account that will run on the VMs needs to be given  and `Compute Instance Admin` in the service project and `Compute Network User` in the host project.
+
 ## Setup
 First update the file `setup.sh`. 
 In `setup.sh`, the variables at the beginning of the file need to be updated with the values of the current environment.
@@ -15,6 +20,9 @@ SUBNET=""
 ZONE=""
 TAG=""
 ```
+
+### Networking
+Depending on the networking configuration, the VMs might need to be tagged with specific labels. This can be done by updating the configuration parameter `networkTag` in `config.yaml`. More details for the setup can be found under [https://cloud.google.com/solutions/partners/sap/sap-hana-deployment-guide](https://cloud.google.com/solutions/partners/sap/sap-hana-deployment-guide).
 
 ## Running
 Once the file is updated, it can be run, by executing:
@@ -55,9 +63,9 @@ The script will be run as a service account. It is hence necessary to:
   $ export GOOGLE_APPLICATION_CREDENTIALS=full_path_of_service_account_credentials
   ```
 
-## Scale up
+## Reprovisioning
 ### Setup
-The variables in the file `scale_up.py` need to be updated with the information relevant for your environment.
+The variables in the file `reprovision.py` need to be updated with the information relevant for your environment.
 ```python
 project = ""
 region = ""
@@ -68,7 +76,7 @@ new_MachineType = ""
 ### Running
 To run the scale up it is necessary to run the following command. 
 ```bash
-$ scale_up.py
+$ reprovision.py
 ```
 ### How does it work?
 The script copies the current configuration of a VM and creates a new VM with the same configuration. The reason of performing such an operations instead of changing directly the VM size, is to allow to perform extra additional checks and possible steps before the VMs comes up to life, e.g. check the processor architecture, add NICs etc.
