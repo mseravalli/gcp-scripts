@@ -1,0 +1,12 @@
+imports:
+  - path: instance.jinja
+resources:
+  - name: instance
+    type: instance.jinja
+    properties:
+      zone: europe-west1-b
+      tags: 
+        - http
+      metadata:
+        - key: echo
+          value: https://storage.googleapis.com/seravalli-test-dm/echo-0.0.1.tar.gz

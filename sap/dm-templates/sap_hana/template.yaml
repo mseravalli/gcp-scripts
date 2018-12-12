@@ -1,0 +1,71 @@
+imports:
+- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py
+
+resources:
+- name: sap_hana
+  type: https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py
+  properties:
+    instanceName: [VM_NAME]
+    instanceType: [MACHINE_TYPE]
+    zone: [ZONE]
+    subnetwork: [SUBNETWORK]
+    linuxImage: [IMAGE_FAMILY]
+    linuxImageProject: [IMAGE_PROJECT]
+    sap_hana_deployment_bucket: [MEDIA_BUCKET]
+    sap_hana_sid: [SID]
+    sap_hana_instance_number: [INSTANCE_NUMBER]
+    sap_hana_sidadm_password: [PASSWORD]
+    sap_hana_system_password: [PASSWORD]
+    sap_hana_scaleout_nodes: [NUMBER_OF_WORKER_NODES]
+    #
+    # --- Advanced Options ---
+    # The following advanced options are not usually needed. To use an advanced option, remove
+    # the comment indicator, #, before the parameter name and specify an appropriate value.
+    #
+    # networkTag: [TAG]
+    #    Adds network tags to your instance. This is useful if you do routing or define
+    #    firewall rules by tags. By default, no tags are added to your VM. Multiple tags
+    #    can be assigned by separating them with commas
+    #
+    # publicIP: [No | Yes]
+    #    Defines whether a public IP address should be added to your VM. By default this is
+    #    set to Yes. Note that if you set this to No without appropriate network nat and
+    #    tags in place, there will be no route to the internet and thus the installation will
+    #    fail.
+    #
+    # serviceAccount: [CUSTOM_SERVICE_ACCOUNT]
+    #    By default, the VM's will be deployed using the default project service account. If
+    #    you wish, you can create your own service account with locked down permissions and
+    #    specify the name of the account here. Note that an incorrectly defined service
+    #    account will prevent a successful deployment. Example of a correctly specified
+    #    custom service account: myserviceuser@myproject.iam.gserviceaccount.com
+    #
+    # sap_hana_backup_size: [BACKUP_SIZE]
+    #    Overrides the backup volume size (2x machine memory size) and sets the size to the
+    #    number of GB specified. Valid values are 1 to 64000
+    #
+    # sap_hana_double_volume_size: [No | Yes]
+    #    Doubles the HANA volume size. Useful if you wish to locate multiple SAP HANA instances
+    #    or a DR HANA instance on the same VM. By default, the volume size is automatically
+    #    calculated to be the minimum required for your memory footprint while still meeting
+    #    the SAP certification & support requirements.
+    #
+    # sap_hana_sidadm_uid: [USER_ID]
+    #    The default value for the <sid>adm user ID is 900 to avoid user created groups conflicting
+    #    with SAP HANA. However, you may want to change this to a different value and be consistent\
+    #    across your landscape
+    #
+    # sap_hana_sapsys_gid: [GROUP_ID]
+    #    The default group ID for sapsys is 79. By specifying a value above you can overide
+    #    this value to your requirements
+    #
+    # sap_deployment_debug: [No | Yes]
+    #    Debug mode. Do not enable debug mode unless you are asked by support to turn it on.
+    #
+    # --- Developer Options ---
+    # post_deployment_script: [SCRIPT_URL]
+    #    Specifies the location of a script to run after the deployment is complete.
+    #    The script should be hosted on a web server or in a GCS bucket. The URL should
+    #    begin with http:// https:// or gs://. Note that this script will be executed
+    #    on all VM's that the template creates. If you only want to run it on the master
+    #    instance you will need to add a check at the top of your script.

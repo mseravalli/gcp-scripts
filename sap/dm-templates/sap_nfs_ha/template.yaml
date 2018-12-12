@@ -1,0 +1,47 @@
+imports:
+- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nfs_ha/sap_nfs_ha.py
+
+resources:
+- name: sap_nfs_ha
+  type: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nfs_ha/sap_nfs_ha.py
+  properties:
+    primaryInstanceName: [VM_NAME_1]
+    secondaryInstanceName: [VM_NAME_2]
+    primaryZone: [ZONE]
+    secondaryZone: [ZONE]
+    instanceType: [MACHINE_TYPE]
+    subnetwork: [SUBNETWORK_NAME]
+    linuxImage: family/sles-12-sp2-sap
+    linuxImageProject: suse-sap-cloud
+    nfsVolSize: [SIZE_IN_GB]
+    sap_vip: [VIRTUAL_IP]
+    #
+    # --- Advanced Options ---
+    # The following advanced options are not usually needed. To use an advanced option, remove
+    # the comment indicator, #, before the parameter name and specify an appropriate value.
+    #
+    # networkTag: [TAG]
+    #    Adds network tags to your instance. This is useful if you do routing or define
+    #    firewall rules by tags. By default, no tags are added to your VM. Multiple tags
+    #    can be assigned by separating them with commas
+    #
+    # publicIP: [No | Yes]
+    #    Defines whether a public IP address should be added to your VM. By default this is
+    #    set to Yes. Note that if you set this to No without appropriate network nat and
+    #    tags in place, there will be no route to the internet and thus the installation will
+    #    fail.
+    #
+    # serviceAccount: [CUSTOM_SERVICE_ACCOUNT]
+    #    By default, the VM's will be deployed using the default project service account. If
+    #    you wish, you can create your own service account with locked down permissions and
+    #    specify the name of the account here. Note that an incorrectly defined service
+    #    account will prevent a successful deployment. Example of a correctly specified
+    #    custom service account: myserviceuser@myproject.iam.gserviceaccount.com
+    #
+    # --- Developer Options ---
+    # post_deployment_script: [SCRIPT_URL]
+    #    Specifies the location of a script to run after the deployment is complete.
+    #    The script should be hosted on a web server or in a GCS bucket. The URL should
+    #    begin with http:// https:// or gs://. Note that this script will be executed
+    #    on all VM's that the template creates. If you only want to run it on the master
+    #    instance you will need to add a check at the top of your script.

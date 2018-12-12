@@ -1,0 +1,43 @@
+imports:
+- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_db2-win/sap_db2-win.py
+
+resources:
+- name: sap_db2-win
+  type: https://storage.googleapis.com/sapdeploy/dm-templates/sap_db2-win/sap_db2-win.py
+  properties:
+    instanceName: [VM_NAME]
+    instanceType: [MACHINE_TYPE]
+    zone: [ZONE]
+    subnetwork: [SUBNETWORK]
+    windowsImage: [IMAGE_FAMILY]
+    windowsImageProject: windows-cloud
+    db2sidSize: [DBSID_DISK_SIZE]
+    db2saptmpSize: [SAPTMP_DISK_SIZE]
+    db2sapdataSize: [SAPDATA_DISK_SIZE]
+    db2logSize: [LOGDIR_DISK_SIZE]
+    db2backupSize: [BACKUP_DISK_SIZE]
+    db2sapdataSSD: [Yes|No]
+    db2logSSD: [Yes|No]
+    usrsapSize: [USRSAP_DISK_SIZE]
+    swapSize: [SWAP_SIZE]
+    #
+    # --- Advanced Options ---
+    # The following advanced options are not usually needed. To use an advanced option, remove
+    # the comment indicator, #, before the parameter name and specify an appropriate value.
+    #
+    # networkTag: [TAG]
+    #    Adds a network tag to your instance. This is useful if you do routing or define
+    #    firewall rules by tags. By default, no tags are added to your VM.
+    #
+    # publicIP: [No | Yes]
+    #    Defines whether a public IP address should be added to your VM. By default this is
+    #    set to Yes. Note that if you set this to No without appropriate network nat and
+    #    tags in place, there will be no route to the internet and thus the installation could
+    #    fail.
+    #
+    # serviceAccount: [CUSTOM_SERVICE_ACCOUNT]
+    #    By default, the VM's will be deployed using the default project service account. If
+    #    you wish, you can create your own service account with locked down permissions and
+    #    specify the name of the account here. Note that an incorrectly defined service
+    #    account will prevent a successful deployment. Example of a correctly specified
+    #    custom service account: myserviceuser@myproject.iam.gserviceaccount.com

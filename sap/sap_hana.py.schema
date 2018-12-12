@@ -1,0 +1,139 @@
+#!/bin/bash
+# ------------------------------------------------------------------------
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Description:  Google Cloud Platform - SAP Deployment Functions
+# Build Date:   Fri Nov 30 14:59:44 GMT 2018
+# ------------------------------------------------------------------------
+
+info:
+  title: SAP HANA deployment template
+  description: Creates a scale-up or scale-out HANA instance
+
+required:
+- instanceName
+- instanceType
+- zone
+- subnetwork
+- linuxImage
+- linuxImageProject
+
+properties:
+  zone:
+    description: Zone to create the resources in.
+    type: string
+
+  instanceName:
+    description: Hostname of the GCE instance
+    type: string
+
+  instanceType:
+    description: Instance type to deploy for SAP HANA
+    type: string
+    pattern: "(n1-highmem-32|n1-highmem-64|n1-highmem-96|n1-megamem-96|n1-ultramem-40||n1-ultramem-80||n1-ultramem-160)"
+
+  subnetwork:
+    description: The sub network to deploy the instance in.
+    type: string
+
+  linuxImage:
+    description: Linux image name to use. family/sles-12-sp2-sap or family/sles-12-sp2-sap will use the latest SLES 12 SP2 or SP3 image.
+    type: string
+
+  linuxImageProject:
+    description: The project which the Linux image belongs to.
+    type: string
+
+  sap_hana_deployment_bucket:
+    description: OPTIONAL - The GCS bucket containing the SAP HANA media. If this is not defined, the GCE instance will be provisioned without SAP HANA installed.
+    type: string
+
+  sap_hana_sid:
+    description: OPTIONAL - The SAP HANA SID. If this is not defined, the GCE instance will be provisioned without SAP HANA installed. SID must adere to SAP standard (Three letters or numbers and start with a letter).
+    type: string
+    maxLength: 3
+    minLength: 3
+    pattern: "([A-Z][A-Z0-9][A-Z0-9])"
+
+  sap_hana_double_volume_size:
+    description: OPTIONAL - If this is set to Yes or True, the GCE instance will be provisioned with double the amount of disk space to support multiple SAP instances.
+    type: boolean
+    default: false
+
+  sap_hana_instance_number:
+    description: OPTIONAL - The SAP instance number. If this is not defined, the GCE instance will be provisioned without SAP HANA installed.
+    type: integer
+    maximum: 99
+    minimum: 0
+    default: 0
+
+  sap_hana_sidadm_password:
+    description: OPTIONAL - The linux sidadm login password. If this is not defined, the GCE instance will be provisioned without SAP HANA installed. Minimum requirement is 8 characters.
+    type: string
+    minLength: 8
+    pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"
+
+  sap_hana_system_password:
+    description: OPTIONAL - The SAP HANA SYSTEM password. If this is not defined, the GCE instance will be provisioned without SAP HANA installed. Minimum requirement is 8 characters with at least 1 number.
+    type: string
+    minLength: 8
+    pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"
+
+  sap_hana_scaleout_nodes:
+    description: OPTIONAL - Number of additional nodes to add. E.g - if you wish for a 4 node cluster you would specify 3 here.
+    type: integer
+    maximum: 127
+    minimum: 0
+    default: 0
+
+  sap_hana_backup_size:
+    description: OPTIONAL - Size in GB of the /hanabackup volume. If this is not set or set to zero, the GCE instance will be provisioned with a hana backup volume of 2 times the total memory.
+    type: integer
+    maximum: 63000
+    minimum: 1
+
+  sap_hana_sidadm_uid:
+    description: OPTIONAL - The Linux UID of the <SID>adm user. By default this is set to 900 to avoid conflicting with other OS users.
+    type: integer
+    maximum: 60000
+    minimum: 0
+    default: 900
+
+  sap_hana_sapsys_gid:
+    description: OPTIONAL - The Linux GID of the SAPSYS group. By default this is set to 79
+    type: integer
+    maximum: 60000
+    minimum: 0
+
+  networkTag:
+    description: OPTIONAL - A network tag can be associated to your instance on deployment. This can be used for firewalling or routing purposes.
+    type: string
+
+  publicIP:
+    description: OPTIONAL - Defines whether a public IP address should be added to your VM. By default this is set to Yes. Note that if you set this to No without appropriate network nat and tags in place, there will be no route to the internet and thus the installation will fail.
+    type: boolean
+    default: true
+
+  sap_deployment_debug:
+    description: OPTIONAL - If this value is set to anything, the deployment will generates verbose deployment logs. Only turn this setting on if a Google support engineer asks you to enable debugging.
+    type: boolean
+    default: false
+
+  post_deployment_script:
+    description: OPTIONAL - gs:// or https:// location of a script to execute on the created VM's post deployment
+    type: string
+    
+  serviceAccount:
+    description: OPTIONAL - Ability to define a custom service account instead of using the default project service account
+    type: string
