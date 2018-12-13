@@ -1,6 +1,6 @@
 imports:
 - path: hana_pre_deployment.py
-- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py
+- path: dm-templates/sap_hana/sap_hana.py
 - path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nw/sap_nw.py
 
 resources:
@@ -10,14 +10,15 @@ resources:
     environment: test
 
 - name: sap_hana
-  type: https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py
+  type: sap_hana.py
   properties:
-    instanceName: sape36vm
+    instanceName: e36-fullsa
     instanceType: n1-highmem-32
     zone: europe-west4-c
     subnetwork: default
     linuxImage: family/sles-12-sp2-sap
     linuxImageProject: suse-sap-cloud
+    deployment_script_location:  https://storage.googleapis.com/sandbox-303kdn50-deployment-scripts/dm-templates
     sap_hana_deployment_bucket: sandbox-303kdn50-saprepo
     sap_hana_sid: E36
     sap_hana_instance_number: 36

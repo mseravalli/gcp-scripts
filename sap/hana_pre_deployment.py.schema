@@ -21,7 +21,8 @@ info:
 imports:
 - path: sap_hana.py
 
-additionalProperties: false
+additionalProperties: true
+
 properties:
   project_id:
     description: >

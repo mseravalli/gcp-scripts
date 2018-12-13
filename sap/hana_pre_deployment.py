@@ -30,14 +30,14 @@ def GenerateConfig(context):
   project_number = str(context.env['project_number'])
   environment = str(context.properties.get('environment'))
 
-  sa_hana_compute = 'sa-' + project_number + '-' + environment + '-hana-vm'
+  sa_hana_compute = 'sa-hana-vm-' + environment
   sa_hana_compute_full = sa_hana_compute + '@' + project_id + '.iam.gserviceaccount.com'
   sa_compute_default_full = project_number + '-compute' + '@developer.gserviceaccount.com'
   sa_dm_default_full = project_number + '@cloudservices.gserviceaccount.com'
 
   resources = []
 
-  # create service account for VM
+  # create service account for VM and allow DM to use it
   resources.append({
     'name': sa_hana_compute,
     'type': 'iam.v1.serviceAccount',
@@ -45,10 +45,21 @@ def GenerateConfig(context):
       'accountId': sa_hana_compute,
       'displayName': sa_hana_compute,
       'projectId': project_id
+    },
+    'accessControl': {
+      'gcpIamPolicy': {
+        'bindings': [ {
+          'role': 'roles/iam.serviceAccountUser',
+          'members': [
+            'user:seravalli@mediamarktsaturn.com',
+            'serviceAccount:' + sa_dm_default_full,
+          ]
+        } ]
+      }
     }
   })
 
-  # update permissions for service account
+  # update permissions for service accounts
   resources.extend([{
     # Get the IAM policy first so that we do not remove any existing bindings.
     'name': project_id + '-get-iam-policy',
@@ -60,8 +71,7 @@ def GenerateConfig(context):
       'runtimePolicy': ['UPDATE_ALWAYS']
     }
   }, {
-    # Set the IAM policy patching the existing policy with what ever is currently in the
-    # config.
+    # Set the IAM policy patching the existing policy with what ever is currently in the config.
     'name': project_id + '-patch-iam-policy',
     'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy',
     'properties': {
@@ -70,17 +80,29 @@ def GenerateConfig(context):
       'gcpIamPolicyPatch': {
         'add': [
           {
-            'role': 'roles/owner',
+            'role': 'roles/storage.objectAdmin',
             'members': [
-              'serviceAccount:' + sa_compute_default_full,
               'serviceAccount:' + sa_hana_compute_full
             ]
-          },
-          {
+          }, {
+            'role': 'roles/compute.instanceAdmin.v1',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full,
+            ]
+          }, {
             'role': 'roles/compute.serviceAgent',
             'members': [
-              # default agent for DM
-              'serviceAccount:' + sa_dm_default_full
+              'serviceAccount:' + sa_hana_compute_full,
+            ]
+          }, {
+            'role': 'roles/logging.logWriter',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full,
+            ]
+          }, {
+            'role': 'roles/monitoring.metricWriter',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full,
             ]
           }
         ]
