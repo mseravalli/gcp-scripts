@@ -32,7 +32,7 @@ properties:
 
   environment:
     description: >
-      Environment where it needs to be run.
+      OPTIONAL - Environment where it needs to be run. Will be appended to the names of the resources.
     type: string
 
   sap_hana_deployment_bucket:

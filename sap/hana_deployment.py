@@ -28,15 +28,19 @@ def GenerateConfig(context):
 
   project_id = context.env['project']
   project_number = str(context.env['project_number'])
-  environment = str(context.properties.get('environment'))
+  environment = str(context.properties.get('environment', ''))
+  if environment != '':
+    environment = '-' + environment
 
   sa_compute_default_full = project_number + '-compute' + '@developer.gserviceaccount.com'
   sa_dm_default_full = project_number + '@cloudservices.gserviceaccount.com'
 
-  sa_hana_compute = 'sa-hana-vm-' + environment
+  sa_hana_compute = 'sa-hana-vm' + environment
   sa_hana_compute_full = sa_hana_compute + '@' + project_id + '.iam.gserviceaccount.com'
-  instance_name = str(context.properties.get('instanceName')) + '-' + environment
 
+  instance_name = str(context.properties.get('instanceName')) + environment
+
+  # defines all the resources that will be deployed
   resources = []
 
   # create service account for VM and allow DM to use it
@@ -53,8 +57,8 @@ def GenerateConfig(context):
         'bindings': [ {
           'role': 'roles/iam.serviceAccountUser',
           'members': [
-            'user:seravalli@mediamarktsaturn.com',
             'serviceAccount:' + sa_dm_default_full,
+            'serviceAccount:' + sa_hana_compute_full,
           ]
         } ]
       }
@@ -62,6 +66,7 @@ def GenerateConfig(context):
   })
 
   # update permissions for service accounts
+  # TODO: first delete all the existing policies for the service accounts
   resources.extend([{
     # Get the IAM policy first so that we do not remove any existing bindings.
     'name': project_id + '-get-iam-policy',
@@ -87,12 +92,13 @@ def GenerateConfig(context):
               'serviceAccount:' + sa_hana_compute_full
             ]
           }, {
-            'role': 'roles/compute.instanceAdmin.v1',
+            # this might be needed in the host project of the XPN
+            'role': 'roles/compute.networkUser',
             'members': [
-              'serviceAccount:' + sa_hana_compute_full,
+              'serviceAccount:' + sa_hana_compute_full
             ]
           }, {
-            'role': 'roles/compute.serviceAgent',
+            'role': 'roles/compute.instanceAdmin.v1',
             'members': [
               'serviceAccount:' + sa_hana_compute_full,
             ]
@@ -158,7 +164,7 @@ def GenerateConfig(context):
       'serviceAccount': sa_hana_compute_full
     },
     'metadata': {
-      'dependsOn': [sa_hana_compute, project_id + '-get-iam-policy']
+      'dependsOn': [project_id + '-patch-iam-policy']
     }
   })
 
