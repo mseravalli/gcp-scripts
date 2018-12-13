@@ -30,10 +30,12 @@ def GenerateConfig(context):
   project_number = str(context.env['project_number'])
   environment = str(context.properties.get('environment'))
 
-  sa_hana_compute = 'sa-hana-vm-' + environment
-  sa_hana_compute_full = sa_hana_compute + '@' + project_id + '.iam.gserviceaccount.com'
   sa_compute_default_full = project_number + '-compute' + '@developer.gserviceaccount.com'
   sa_dm_default_full = project_number + '@cloudservices.gserviceaccount.com'
+
+  sa_hana_compute = 'sa-hana-vm-' + environment
+  sa_hana_compute_full = sa_hana_compute + '@' + project_id + '.iam.gserviceaccount.com'
+  instance_name = str(context.properties.get('instanceName')) + '-' + environment
 
   resources = []
 
@@ -130,6 +132,33 @@ def GenerateConfig(context):
       'targetServiceAccounts': [
         '149382556458-compute@developer.gserviceaccount.com'
       ]
+    }
+  })
+
+  # install sap_hana
+  resources.append({
+    'name': 'sap_hana',
+    'type': 'sap_hana.py',
+    'properties': {
+      'instanceName': instance_name,
+      'instanceType': str(context.properties.get('instanceType')),
+      'zone': str(context.properties.get('zone')),
+      'subnetwork': str(context.properties.get('subnetwork')),
+      'linuxImage': str(context.properties.get('linuxImage')),
+      'linuxImageProject': str(context.properties.get('linuxImageProject')),
+      'deployment_script_location': str(context.properties.get('deployment_script_location')),
+      'sap_hana_deployment_bucket': str(context.properties.get('sap_hana_deployment_bucket')),
+      'sap_hana_sid': str(context.properties.get('sap_hana_sid')),
+      'sap_hana_instance_number': int(context.properties.get('sap_hana_instance_number')),
+      'sap_hana_sidadm_password': str(context.properties.get('sap_hana_sidadm_password')),
+      'sap_hana_system_password': str(context.properties.get('sap_hana_system_password')),
+      'sap_hana_scaleout_nodes': int(context.properties.get('sap_hana_scaleout_nodes')),
+      'sap_deployment_debug': bool(context.properties.get('sap_deployment_debug')),
+      'sap_hana_sidadm_uid': int(context.properties.get('sap_hana_sidadm_uid')),
+      'serviceAccount': sa_hana_compute_full
+    },
+    'metadata': {
+      'dependsOn': [sa_hana_compute, project_id + '-get-iam-policy']
     }
   })
 

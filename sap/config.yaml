@@ -1,17 +1,13 @@
 imports:
-- path: hana_pre_deployment.py
+- path: hana_deployment.py
 - path: dm-templates/sap_hana/sap_hana.py
 - path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nw/sap_nw.py
 
 resources:
-- name: hana_pre_deployment
-  type: hana_pre_deployment.py
+- name: hana_deployment
+  type: hana_deployment.py
   properties:
     environment: test
-
-- name: sap_hana
-  type: sap_hana.py
-  properties:
     instanceName: e36-fullsa
     instanceType: n1-highmem-32
     zone: europe-west4-c
