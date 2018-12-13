@@ -66,24 +66,89 @@ def GenerateConfig(context):
   })
 
   # update permissions for service accounts
-  # TODO: first delete all the existing policies for the service accounts
+
+  # If the template is run more that a single time, ensure to remove all the
+  # roles associated to the `hana_compute` service account.
+  # If not all existing roles are deleted, the policies will not be correctly applied.
+  # This is due to the fact that the policies are associated to the internal id
+  # of a service account (!= from the email), but only the email is displayed. 
+  # In the case that serviceaccount@myproject.com is deleted and recreated,
+  # as long as there is a policy associated to the service account email, in the
+  # background the old id will be used, the new service account will not inherit
+  # the policies of its predecessor. All policies need to be deleted first, only
+  # after this operations the newer service account will be used.
   resources.extend([{
     # Get the IAM policy first so that we do not remove any existing bindings.
-    'name': project_id + '-get-iam-policy',
+    'name': 'get-iam-policy-initial',
     'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy',
     'properties': {
       'resource': project_id,
     },
     'metadata': {
+      'dependsOn': [sa_hana_compute],
       'runtimePolicy': ['UPDATE_ALWAYS']
     }
   }, {
     # Set the IAM policy patching the existing policy with what ever is currently in the config.
-    'name': project_id + '-patch-iam-policy',
+    'name': 'patch-remove-iam-policy',
     'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy',
     'properties': {
       'resource': project_id,
-      'policy': '$(ref.' + project_id + '-get-iam-policy)',
+      'policy': '$(ref.get-iam-policy-initial)',
+      'gcpIamPolicyPatch': {
+        'remove': [
+          {
+            'role': 'roles/storage.objectAdmin',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full
+            ]
+          }, {
+            # this might be needed in the host project of the XPN
+            'role': 'roles/compute.networkUser',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full
+            ]
+          }, {
+            'role': 'roles/compute.instanceAdmin.v1',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full,
+            ]
+          }, {
+            'role': 'roles/logging.logWriter',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full,
+            ]
+          }, {
+            'role': 'roles/monitoring.metricWriter',
+            'members': [
+              'serviceAccount:' + sa_hana_compute_full,
+            ]
+          }
+        ]
+      }
+    },
+    'metadata': {
+      'dependsOn': ['get-iam-policy-initial'],
+      'runtimePolicy': ['UPDATE_ALWAYS']
+    }
+  }, {
+    # Get the IAM policy first so that we do not remove any existing bindings.
+    'name': 'get-iam-policy-cleaned',
+    'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy',
+    'properties': {
+      'resource': project_id,
+    },
+    'metadata': {
+      'dependsOn': ['patch-remove-iam-policy'],
+      'runtimePolicy': ['UPDATE_ALWAYS']
+    }
+  }, {
+    # Set the IAM policy patching the existing policy with what ever is currently in the config.
+    'name': 'patch-add-iam-policy',
+    'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy',
+    'properties': {
+      'resource': project_id,
+      'policy': '$(ref.get-iam-policy-cleaned)',
       'gcpIamPolicyPatch': {
         'add': [
           {
@@ -117,7 +182,8 @@ def GenerateConfig(context):
       }
     },
     'metadata': {
-      'dependsOn': [sa_hana_compute, project_id + '-get-iam-policy']
+      'dependsOn': ['get-iam-policy-cleaned'],
+      'runtimePolicy': ['UPDATE_ALWAYS']
     }
   }])
 
@@ -136,7 +202,7 @@ def GenerateConfig(context):
         'IPProtocol': 'all'
       }],
       'targetServiceAccounts': [
-        '149382556458-compute@developer.gserviceaccount.com'
+        sa_hana_compute_full
       ]
     }
   })
@@ -164,7 +230,7 @@ def GenerateConfig(context):
       'serviceAccount': sa_hana_compute_full
     },
     'metadata': {
-      'dependsOn': [project_id + '-patch-iam-policy']
+      'dependsOn': ['patch-add-iam-policy']
     }
   })
 
