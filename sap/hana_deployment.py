@@ -170,16 +170,17 @@ def UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full)
     }
   }])
 
+"""Allow full communication between SAP HANA VM"""
 def AddFirewallRules(resources, project_id, sa_hana_compute_full):
-  resources.append({
-    'name': 'hana-fw-rule',
+  resources.extend([{
+    'name': 'allow-hana-internal',
     'type': 'compute.v1.firewall',
     'properties': {
       #'network': '$(ref.{{' + context.env['deployment'] +'}}-network.selfLink)',
       'network': GlobalComputeUrl(project_id, 'networks', 'default'),
       'direction': 'INGRESS',
-      'sourceRanges': [
-        '0.0.0.0/0'
+      'sourceServiceAccounts': [
+        sa_hana_compute_full
       ],
       'allowed': [{
         'IPProtocol': 'all'
@@ -191,7 +192,7 @@ def AddFirewallRules(resources, project_id, sa_hana_compute_full):
     'metadata': {
       'dependsOn': [ sa_hana_compute_full ]
     }
-  })
+  }])
 
 def InstallSAPHana(resources, context, instance_name, sa_hana_compute_full):
   resources.append({
@@ -247,8 +248,6 @@ def GenerateConfig(context):
   AddFirewallRules(resources, project_id, sa_hana_compute_full)
 
   InstallSAPHana(resources, context, instance_name, sa_hana_compute_full)
-
-  # install sap_hana
 
   return {'resources': resources}
 
