@@ -59,7 +59,14 @@ def AddServiceAccount(resources, project_id, sa_hana_compute_full, sa_dm_default
 # background the old id will be used, the new service account will not inherit
 # the policies of its predecessor. All policies need to be deleted first, only
 # after this operations the newer service account will be used.
-def UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full):
+def UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full, context):
+
+  # no dependency if no serviceAccount is defined
+  # TODO: case where the service account is in a different project
+  sa_dependency = []
+  if (str(context.properties.get('serviceAccount', ''))  != '') :
+    sa_dependency = [sa_hana_compute_full]
+
   resources.extend([{
     # Get the IAM policy first so that we do not remove any existing bindings.
     'name': 'get-iam-policy-initial',
@@ -68,7 +75,7 @@ def UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full)
       'resource': project_id,
     },
     'metadata': {
-      'dependsOn': [sa_hana_compute_full],
+      'dependsOn': sa_dependency,
       'runtimePolicy': ['UPDATE_ALWAYS']
     }
   }, {
@@ -86,7 +93,7 @@ def UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full)
               'serviceAccount:' + sa_hana_compute_full
             ]
           }, {
-            # this might be needed in the host project of the XPN
+            # TODO: permission needs to be in the right project in case of XPN
             'role': 'roles/compute.networkUser',
             'members': [
               'serviceAccount:' + sa_hana_compute_full
@@ -140,7 +147,7 @@ def UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full)
               'serviceAccount:' + sa_hana_compute_full
             ]
           }, {
-            # this might be needed in the host project of the XPN
+            # TODO: permission needs to be in the right project in case of XPN
             'role': 'roles/compute.networkUser',
             'members': [
               'serviceAccount:' + sa_hana_compute_full
@@ -171,7 +178,13 @@ def UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full)
   }])
 
 """Allow full communication between SAP HANA VM"""
-def AddFirewallRules(resources, project_id, sa_hana_compute_full):
+def AddFirewallRules(resources, project_id, sa_hana_compute_full, context):
+  # no dependency if no serviceAccount is defined
+  # TODO: case where the service account is in a different project
+  sa_dependency = []
+  if (str(context.properties.get('serviceAccount', ''))  != '') :
+    sa_dependency = [sa_hana_compute_full]
+
   resources.extend([{
     'name': 'allow-hana-internal',
     'type': 'compute.v1.firewall',
@@ -190,7 +203,7 @@ def AddFirewallRules(resources, project_id, sa_hana_compute_full):
       ]
     },
     'metadata': {
-      'dependsOn': [ sa_hana_compute_full ]
+      'dependsOn': sa_dependency
     }
   }])
 
@@ -233,18 +246,24 @@ def GenerateConfig(context):
   sa_compute_default_full = project_number + '-compute' + '@developer.gserviceaccount.com'
   sa_dm_default_full = project_number + '@cloudservices.gserviceaccount.com'
 
+  # by default use the default compute service account
   sa_hana_compute_full = sa_compute_default_full
 
   if (str(context.properties.get('serviceAccount', ''))  != '') :
-    sa_hana_compute_full = str(context.properties.get('serviceAccount')) + '@' + project_id + '.iam.gserviceaccount.com'
+    # if complete email is not provided define the service account for current project
+    if "@" in context.properties['subnetwork']:
+      sa_hana_compute_full = str(context.properties.get('serviceAccount')) 
+    else:
+      sa_hana_compute_full = str(context.properties.get('serviceAccount')) + '@' + project_id + '.iam.gserviceaccount.com'
+
     context.properties['serviceAccount'] = sa_hana_compute_full
+    AddServiceAccount(resources, project_id, sa_hana_compute_full, sa_dm_default_full)
 
-  AddServiceAccount(resources, project_id, sa_hana_compute_full, sa_dm_default_full)
+  UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full, context)
 
-  UpdateServiceAccountPermissions(resources, project_id, sa_hana_compute_full)
+  AddFirewallRules(resources, project_id, sa_hana_compute_full, context)
 
-  AddFirewallRules(resources, project_id, sa_hana_compute_full)
-
+  context.properties['serviceAccount'] = sa_hana_compute_full
   InstallSAPHana(resources, context)
 
   return {'resources': resources}
