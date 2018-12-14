@@ -2,7 +2,7 @@
 Hana will be setup using the standard scripts and templates provided by GCP.
 
 ## Prerequisites
-In orer to be able to run the scripts present in this repository it is necessary to have Google Cloud SDK installed on the developers' workstation.
+In order to be able to run the scripts present in this repository it is necessary to have Google Cloud SDK installed on the developers' workstation.
 
 ### Service Accounts
 In a Shared VPC environment the service account that will run the Deployment Manager (by default `{project_number}@cloudservices.gserviceaccount.com`), needs to have `Compute Admin` in the service project and `Compute Network Admin` on in the host project.
@@ -31,7 +31,8 @@ $ ./setup.sh
 ```
 
 ## How does it work?
-The script `setup.sh` executes the Deployment Manager (DM) template `sap-hana.py`. The official version of this template can be found under [https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py](https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py).
+The script `setup.sh` executes the Deployment Manager (DM) template `sap_hana_deployment.py`. This template will prepare and then deploy the template `sap_hana.py`. The official version of this template can be found under [https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py](https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py).
+`sap_hana_deployment.py` accepts the same parameters are `sap_hana.py` but additionally it sets up the service account and assigns it the right permissions.
 However, for customization purposes the same files can be found in the directory `dm-templates`.
 The template `templates/sap_hana/sap-hana.py` creates the necessary infrastructure for hosting Hana and then executes the scripts `dm-templates/sap_hana/startup.sh` on the master node and `dm-templates/sap_hana/startup_secondary.sh` on the worker nodes. The startup scripts in turn will call functions defined in `dm-templates/lib/sap_lib_main.sh` and `dm-templates/lib/sap_lib_hdb.sh`, that will perform the actual installation on the VMs.
 

@@ -210,7 +210,7 @@ def AddFirewallRules(resources, project_id, sa_hana_compute_full, context):
 def InstallSAPHana(resources, context):
   resources.append({
     'name': 'sap_hana',
-    'type': 'sap_hana.py',
+    'type': 'dm-templates/sap_hana/sap_hana.py',
     'properties': {
       'instanceName': str(context.properties.get('instanceName')),
       'instanceType': str(context.properties.get('instanceType')),

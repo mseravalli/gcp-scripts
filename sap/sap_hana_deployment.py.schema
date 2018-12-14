@@ -19,7 +19,7 @@ info:
     Creates the infrastructure and deploys HANA.
 
 imports:
-- path: sap_hana.py
+- path: dm-templates/sap_hana/sap_hana.py
 
 additionalProperties: true
 

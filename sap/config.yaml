@@ -1,11 +1,10 @@
 imports:
-- path: hana_deployment.py
-- path: dm-templates/sap_hana/sap_hana.py
+- path: sap_hana_deployment.py
 - path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nw/sap_nw.py
 
 resources:
-- name: hana_deployment
-  type: hana_deployment.py
+- name: sap_hana_deployment
+  type: sap_hana_deployment.py
   properties:
     instanceName: e36-fullsa
     serviceAccount: sa-hana-e36-fullsa
