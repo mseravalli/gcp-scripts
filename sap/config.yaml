@@ -7,8 +7,8 @@ resources:
 - name: hana_deployment
   type: hana_deployment.py
   properties:
-    environment: test
     instanceName: e36-fullsa
+    serviceAccount: sa-hana-e36-fullsa
     instanceType: n1-highmem-32
     zone: europe-west4-c
     subnetwork: default

@@ -194,12 +194,12 @@ def AddFirewallRules(resources, project_id, sa_hana_compute_full):
     }
   }])
 
-def InstallSAPHana(resources, context, instance_name, sa_hana_compute_full):
+def InstallSAPHana(resources, context):
   resources.append({
     'name': 'sap_hana',
     'type': 'sap_hana.py',
     'properties': {
-      'instanceName': instance_name,
+      'instanceName': str(context.properties.get('instanceName')),
       'instanceType': str(context.properties.get('instanceType')),
       'zone': str(context.properties.get('zone')),
       'subnetwork': str(context.properties.get('subnetwork')),
@@ -214,7 +214,7 @@ def InstallSAPHana(resources, context, instance_name, sa_hana_compute_full):
       'sap_hana_scaleout_nodes': int(context.properties.get('sap_hana_scaleout_nodes')),
       'sap_deployment_debug': bool(context.properties.get('sap_deployment_debug')),
       'sap_hana_sidadm_uid': int(context.properties.get('sap_hana_sidadm_uid')),
-      'serviceAccount': sa_hana_compute_full
+      'serviceAccount': str(context.properties.get('serviceAccount'))
     },
     'metadata': {
       'dependsOn': ['patch-add-iam-policy']
@@ -224,22 +224,20 @@ def InstallSAPHana(resources, context, instance_name, sa_hana_compute_full):
 def GenerateConfig(context):
   """Generates config."""
 
+  # defines all the resources that will be deployed
+  resources = []
+
   project_id = context.env['project']
   project_number = str(context.env['project_number'])
-  environment = str(context.properties.get('environment', ''))
-  if environment != '':
-    environment = '-' + environment
 
   sa_compute_default_full = project_number + '-compute' + '@developer.gserviceaccount.com'
   sa_dm_default_full = project_number + '@cloudservices.gserviceaccount.com'
 
-  sa_hana_compute = 'sa-hana-vm' + environment
-  sa_hana_compute_full = sa_hana_compute + '@' + project_id + '.iam.gserviceaccount.com'
+  sa_hana_compute_full = sa_compute_default_full
 
-  instance_name = str(context.properties.get('instanceName')) + environment
-
-  # defines all the resources that will be deployed
-  resources = []
+  if (str(context.properties.get('serviceAccount', ''))  != '') :
+    sa_hana_compute_full = str(context.properties.get('serviceAccount')) + '@' + project_id + '.iam.gserviceaccount.com'
+    context.properties['serviceAccount'] = sa_hana_compute_full
 
   AddServiceAccount(resources, project_id, sa_hana_compute_full, sa_dm_default_full)
 
@@ -247,7 +245,7 @@ def GenerateConfig(context):
 
   AddFirewallRules(resources, project_id, sa_hana_compute_full)
 
-  InstallSAPHana(resources, context, instance_name, sa_hana_compute_full)
+  InstallSAPHana(resources, context)
 
   return {'resources': resources}
 

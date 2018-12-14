@@ -23,19 +23,3 @@ imports:
 
 additionalProperties: true
 
-properties:
-  project_id:
-    description: >
-      If provided, configures the project to have a human-readable name that
-      is different from the project ID.
-    type: string
-
-  environment:
-    description: >
-      OPTIONAL - Environment where it needs to be run. Will be appended to the names of the resources.
-    type: string
-
-  sap_hana_deployment_bucket:
-    description: OPTIONAL - The GCS bucket containing the SAP HANA media. If this is not defined, the GCE instance will be provisioned without SAP HANA installed.
-    type: string
-
