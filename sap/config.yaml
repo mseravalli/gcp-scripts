@@ -1,0 +1,38 @@
+imports:
+- path: sap_hana_deployment.py
+- path: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nw/sap_nw.py
+
+resources:
+- name: sap_hana_deployment
+  type: sap_hana_deployment.py
+  properties:
+    instanceName: e36-fullsa
+    serviceAccount: sa-hana-e36-fullsa
+    instanceType: n1-highmem-32
+    zone: europe-west4-c
+    subnetwork: default
+    linuxImage: family/sles-12-sp2-sap
+    linuxImageProject: suse-sap-cloud
+    deployment_script_location:  https://storage.googleapis.com/sandbox-303kdn50-deployment-scripts/dm-templates
+    sap_hana_deployment_bucket: sandbox-303kdn50-saprepo
+    sap_hana_sid: E36
+    sap_hana_instance_number: 36
+    sap_hana_sidadm_password: hUk27d.er20
+    sap_hana_system_password: hUk27d.er20
+    sap_hana_scaleout_nodes: 1
+    sap_deployment_debug: True
+    sap_hana_sidadm_uid: 489 
+
+# - name: sap_nw
+#   type: https://storage.googleapis.com/sapdeploy/dm-templates/sap_nw/sap_nw.py
+#   properties:
+#     instanceName: sape37vm
+#     instanceType: n1-standard-16
+#     zone: europe-west4-c
+#     subnetwork: default
+#     linuxImage: family/sles-12-sp2-sap
+#     linuxImageProject: suse-sap-cloud
+#     usrsapSize: 30
+#     sapmntSize: 30
+#     swapSize: 60
+#     sap_deployment_debug: True
