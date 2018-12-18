@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import googleapiclient.discovery
 import time
+import googleapiclient.discovery
 
 # Documentation available under:
 # https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/index.html
@@ -16,24 +16,25 @@ region = "europe-west4"
 zone = region+"-c"
 
 original_vm_name = "sape36vmw1"
-new_MachineType = 'n1-highmem-32'
+new_MachineType = "n1-highmem-32"
 
-compute = googleapiclient.discovery.build('compute', 'v1')
+compute = googleapiclient.discovery.build("compute", "v1")
 
 # [START wait_for_operation]
 def wait_for_operation(compute, project, zone, operation):
-    while True:
-        result = compute.zoneOperations().get(
-            project=project,
-            zone=zone,
-            operation=operation).execute()
+  while True:
+    result = compute.zoneOperations().get(
+        project=project,
+        zone=zone,
+        operation=operation
+    ).execute()
 
-        if result['status'] == 'DONE':
-            if 'error' in result:
-                raise Exception(result['error'])
-            return result
+    if result["status"] == "DONE":
+      if "error" in result:
+        raise Exception(result["error"])
+      return result
 
-        time.sleep(2)
+    time.sleep(2)
 
 original_vm = compute.instances() \
   .get(project=project, zone=zone, instance=original_vm_name).execute()
@@ -42,16 +43,16 @@ print(original_vm)
 
 # copy original settings
 cloned_vm = original_vm
-cloned_vm["machineType"] = cloned_vm["zone"] + "/machineTypes/" + new_MachineType
+cloned_vm["machineType"] = f"{cloned_vm['zone']}/machineTypes/{new_MachineType}"
 cloned_vm["networkInterfaces"] = [{
-  "network": original_vm["networkInterfaces"][0]["network"],
-  "subnetwork": original_vm["networkInterfaces"][0]["subnetwork"],
-  "accessConfigs": [ 
-    {
-      "name": "External NAT",
-      "type": "ONE_TO_ONE_NAT",
-    },
-  ],
+    "network": original_vm["networkInterfaces"][0]["network"],
+    "subnetwork": original_vm["networkInterfaces"][0]["subnetwork"],
+    "accessConfigs": [ 
+        {
+            "name": "External NAT",
+            "type": "ONE_TO_ONE_NAT",
+        },
+    ],
 }]
 
 
@@ -67,18 +68,25 @@ for d in original_vm["disks"]:
                        autoDelete=False,
                        deviceName=d["deviceName"]) \
     .execute()
-  wait_for_operation(compute, project, zone, op['name'])
+  wait_for_operation(compute, project, zone, op["name"])
 
 print("disks won't be deleted")
 
-op = compute.instances().delete(project=project, zone=zone, instance=original_vm_name).execute()
-wait_for_operation(compute, project, zone, op['name'])
+op = compute.instances().delete(
+    project=project,
+    zone=zone,
+    instance=original_vm_name
+).execute()
+wait_for_operation(compute, project, zone, op["name"])
 
 print("vm deleted")
 
-op = compute.instances().insert(project=project, zone=zone, body=cloned_vm).execute()
-wait_for_operation(compute, project, zone, op['name'])
+op = compute.instances().insert(
+    project=project,
+    zone=zone,
+    body=cloned_vm
+).execute()
+
+wait_for_operation(compute, project, zone, op["name"])
 print("vm cloned")
-
-
 
