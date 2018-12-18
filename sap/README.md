@@ -48,7 +48,7 @@ In order to setup such an environment it is necessary to install python 3.6 firs
 
 The python dependencies can be installed by running:
 ```bash
-$ pip3 install --upgrade google-api-python-client
+$ pip3 install -r requirements.txt
 ```
 
 More information can be found [here](https://developers.google.com/api-client-library/python/start/installation).
@@ -66,18 +66,17 @@ The script will be run as a service account. It is hence necessary to:
 
 ## Reprovisioning
 ### Setup
-The variables in the file `reprovision.py` need to be updated with the information relevant for your environment.
+Define the environment variables that need to be passed to the script with information relevant for your environment. 
 ```python
-project = ""
-region = ""
-zone = ""
-original_vm_name = ""
-new_MachineType = ""
+PROJECT=""
+ZONE=""
+ORIGINAL_VM_NAME=""
+NEW_MACHINETYPE=""
 ```
 ### Running
-To run the scale up it is necessary to run the following command. 
+To run the reprovisioning it is necessary to run the following command. 
 ```bash
-$ reprovision.py
+$ ./reprovision.py  --project=${PROJECT} --zone=${ZONE} --original_vm_name=${ORIGINAL_VM_NAME} --new_MachineType=${NEW_MACHINETYPE}
 ```
 ### How does it work?
 The script copies the current configuration of a VM and creates a new VM with the same configuration. The reason of performing such an operations instead of changing directly the VM size, is to allow to perform extra additional checks and possible steps before the VMs comes up to life, e.g. check the processor architecture, add NICs etc.
