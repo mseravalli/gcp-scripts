@@ -110,7 +110,7 @@ EOF
 
   gcloud compute scp ${TMP_FILE} ${NEW_WORKER}:/tmp/tmp.tmp 
   gcloud compute ssh ${NEW_WORKER} -- "chmod 777 /tmp/tmp.tmp"
-  gcloud compute ssh ${NEW_WORKER} -- "sudo su -c 'cat /tmp/tmp.tmp | /hana/shared/${SID}/hdblcm/hdblcm --action=add_hosts --addhosts=${VM_NAME}w${NEW_INSTANCE_NUMBER} --certificates_hostmap=${VM_NAME}w${NEW_INSTANCE_NUMBER}=${VM_NAME}w${NEW_INSTANCE_NUMBER} --root_user=root --listen_interface=global --read_password_from_stdin=xml -b'"
+  gcloud compute ssh ${NEW_WORKER} -- "sudo su -c 'cat /tmp/tmp.tmp | /hana/shared/${SID}/hdblcm/hdblcm --action=add_hosts --addhosts=${NEW_WORKER} --certificates_hostmap=${NEW_WORKER}=${NEW_WORKER} --root_user=root --listen_interface=global --read_password_from_stdin=xml -b'"
   gcloud compute ssh ${NEW_WORKER} -- rm -f /tmp/tmp.tmp
   rm -f $TMP_FILE
   echo "hana node added"
