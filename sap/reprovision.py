@@ -60,8 +60,6 @@ def wait_for_operation(compute, project, zone, operation):
 def main(argv):
   del argv # unused
 
-  print("yolo")
-
   project = FLAGS.project
   zone = FLAGS.zone
   original_vm_name = FLAGS.original_vm_name
