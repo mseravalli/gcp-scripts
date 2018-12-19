@@ -49,9 +49,9 @@ def wait_for_operation(compute, project, zone, operation):
         operation=operation
     ).execute()
 
-    if result['status'] == 'DONE':
-      if 'error' in result:
-        raise Exception(result['error'])
+    if result["status"] == "DONE":
+      if "error" in result:
+        raise Exception(result["error"])
       return result
 
     time.sleep(2)
@@ -59,8 +59,8 @@ def wait_for_operation(compute, project, zone, operation):
 def stop_hana():
   """Stops hana."""
 
-  subprocess.call('./hana_stop.sh')
-  print(f'hana stopped')
+  subprocess.call("./hana_stop.sh")
+  print(f"hana stopped")
 
 def start_hana():
   """Starts hana."""
@@ -70,34 +70,34 @@ def start_hana():
 def add_hana_node():
   """Adds hana node."""
 
-  subprocess.call('./hana_add_node.sh')
-  print(f'hana node added')
+  subprocess.call("./hana_add_node.sh")
+  print(f"hana node added")
 
 def stop_worker(compute, project, zone, worker):
   """Stops worker."""
 
   op = compute.instances().stop(project=project, zone=zone, instance=worker).execute()
-  wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
-  print(f'worker {worker} stopped')
+  wait_for_operation(compute=compute, project=project, zone=zone, operation=op["name"])
+  print(f"worker {worker} stopped")
 
 def start_worker(compute, project, zone, worker):
   """Starts worker."""
 
   op = compute.instances().start(project=project, zone=zone, instance=worker).execute()
-  wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
-  print(f'worker {worker} started')
+  wait_for_operation(compute=compute, project=project, zone=zone, operation=op["name"])
+  print(f"worker {worker} started")
 
 def create_worker_snapshot(compute, project, zone, worker):
   """Creates a snapshot for the worker if it does not already exists."""
 
   try:
-    compute.snapshots().get(project=project, snapshot=worker + '-worker-boot').execute()
-    print('snaphost is already present won\'t be created')
+    compute.snapshots().get(project=project, snapshot=f"{worker}-worker-boot").execute()
+    print("snaphost is already present won\'t be created")
     return
   except googleapiclient.errors.HttpError:
-    print('snaphost will be created')
+    print("snaphost will be created")
   except:
-    print('error calling the API will exit')
+    print("error calling the API will exit")
     return
 
   stop_worker(compute=compute, project=project, zone=zone, worker=worker)
@@ -115,9 +115,9 @@ def create_worker_snapshot(compute, project, zone, worker):
   operations.append(op)
 
   body = {
-      'name': worker + '-worker-pdssd'
+      "name": f"{worker}-worker-pdssd"
   }
-  disk = worker + '-pdssd'
+  disk = f"{worker}-pdssd"
   op = compute.disks().createSnapshot(
       project=project,
       body=body,
@@ -131,11 +131,11 @@ def create_worker_snapshot(compute, project, zone, worker):
         compute=compute,
         project=project,
         zone=zone,
-        operation=op['name']
+        operation=op["name"]
     )
 
   start_worker(compute=compute, project=project, zone=zone, worker=worker)
-  print('disks copied')
+  print("disks copied")
 
 def create_disks_for_new_worker(compute, project, zone, new_worker, worker):
   """Creates disks for new worker."""
@@ -161,8 +161,8 @@ def create_disks_for_new_worker(compute, project, zone, new_worker, worker):
   operations.append(op)
 
   for op in operations:
-    wait_for_operation(compute=compute, project=project, zone=zone, operation=op['name'])
-  print('new disks created')
+    wait_for_operation(compute=compute, project=project, zone=zone, operation=op["name"])
+  print("new disks created")
 
 def create_new_worker(compute, project, zone, worker, new_worker):
   """Creates a new worker."""
@@ -171,21 +171,21 @@ def create_new_worker(compute, project, zone, worker, new_worker):
     .get(project=project, zone=zone, instance=worker).execute()
 
   new_worker_description = {}
-  new_worker_description['name'] = new_worker
+  new_worker_description["name"] = new_worker
   new_worker_description["zone"] = worker_description["zone"]
   new_worker_description["machineType"] = worker_description["machineType"]
   new_worker_description["network"] = worker_description["networkInterfaces"][0]["network"]
   new_worker_description["subnetwork"] = worker_description["networkInterfaces"][0]["subnetwork"]
   new_worker_description["disks"] = [{
-      'deviceName': new_worker+'-boot',
-      'source': f'https://www.googleapis.com/compute/v1/projects/{project}/zones/europe-west4-c/disks/{new_worker}-boot',
-      'autoDelete': True,
-      'boot': True
+      "deviceName": f"{new_worker}-boot",
+      "source": f"https://www.googleapis.com/compute/v1/projects/{project}/zones/europe-west4-c/disks/{new_worker}-boot",
+      "autoDelete": True,
+      "boot": True
   }, {
-      'deviceName': new_worker+'-pdssd',
-      'source': f'https://www.googleapis.com/compute/v1/projects/{project}/zones/europe-west4-c/disks/{new_worker}-pdssd',
-      'autoDelete': True,
-      'boot': False
+      "deviceName": f"{new_worker}-pdssd",
+      "source": f"https://www.googleapis.com/compute/v1/projects/{project}/zones/europe-west4-c/disks/{new_worker}-pdssd",
+      "autoDelete": True,
+      "boot": False
   }]
 
   new_worker_description["networkInterfaces"] = [{
@@ -198,8 +198,8 @@ def create_new_worker(compute, project, zone, worker, new_worker):
   }]
 
   op = compute.instances().insert(project=project, zone=zone, body=new_worker_description).execute()
-  wait_for_operation(compute, project, zone, op['name'])
-  print(f'new worker {new_worker_description["name"]} created')
+  wait_for_operation(compute, project, zone, op["name"])
+  print(f"new worker {new_worker_description['name']} created")
 
 def main(argv):
   """Main program."""
@@ -211,7 +211,7 @@ def main(argv):
   worker = FLAGS.worker
   new_worker = FLAGS.new_worker
 
-  compute = googleapiclient.discovery.build('compute', 'v1')
+  compute = googleapiclient.discovery.build("compute", "v1")
 
   stop_hana()
   create_worker_snapshot(compute=compute, project=project, zone=zone, worker=worker)
