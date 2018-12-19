@@ -67,11 +67,11 @@ The script will be run as a service account. It is hence necessary to:
 ## Reprovisioning
 ### Setup
 Define the environment variables that need to be passed to the script with information relevant for your environment. 
-```python
-PROJECT=""
-ZONE=""
-ORIGINAL_VM_NAME=""
-NEW_MACHINETYPE=""
+```bash
+$ export PROJECT=""
+$ export ZONE=""
+$ export ORIGINAL_VM_NAME=""
+$ export NEW_MACHINETYPE=""
 ```
 ### Running
 To run the reprovisioning it is necessary to run the following command. 
@@ -83,39 +83,26 @@ The script copies the current configuration of a VM and creates a new VM with th
 
 ## Scale out
 ### Setup
-The variables in the file `scale_out.py` need to be updated with the information relevant for your environment.
-```python
-project = ""
-network_name = ""
-subnet = ""
-region = ""
-zone = ""
-sys_nr = ""
-passwd = ""
-instance_name = ""
-worker = instance_name + 'w1' # the suffix is the name of the node that will be copied
-new_worker = instance_name + 'w2' # the suffix is the name of the new node that will be added
-```
-
-In addition to that, also the script for the opeartions `hana_operations.sh`, need to be updated
+Before running the script, export the following variables in your environment
 ```bash
-PROJECT=""
-NETWORK_NAME=""
-SUBNET=""
-ZONE=""
-TAG=""
-SID=""
-VM_NAME=""
-SYS_NR=""
-PASSWD=""
-NEW_INSTANCE_NUMBER="" # this will be the number of the new VM, assuming the vm will terminate with w${NEW_INSTANCE_NUMBER}
+$ export PROJECT=""
+$ export ZONE=""
+$ export SID=""
+$ export SYS_NR=""
+$ export PASSWD=""
+$ export MASTER=""
+$ export WORKER=""
+$ export NEW_WORKER=""
 ```
 
 ### Running
 To run the scale up it is necessary to run the following command. 
 ```
-$ scale_out.py
+$ scale_out.py --project=${PROJECT} --zone=${ZONE} --worker=${WORKER} --new_worker=${NEW_WORKER}
 ```
+
+The other environment variables will be used by `hana_operations.sh`.
+
 ### How does it work?
 The operations are separated for the infrastructure and the system point of view.
 The infrastructure opeartions are performed using python and the [Google API Client Library](https://developers.google.com/api-client-library/python/), the script containing the infrastructure opeartions is `scale_out.py`. The infrastructure script will call the system opeartions.
