@@ -26,6 +26,11 @@ gcloud config set project $PROJECT
 #   --member serviceAccount:sa-hana-opeartor@sandbox-303kdn50.iam.gserviceaccount.com \
 #   --role roles/owner
 
+# gcloud iam service-accounts add-iam-policy-binding \
+#   149382556458-compute@developer.gserviceaccount.com \
+#   --member serviceAccount:149382556458@cloudservices.gserviceaccount.com \
+#   --role roles/iam.serviceAccountUser 
+
 # gsutil mb gs://${PROJECT}-saprepo
 
 # NAT installation

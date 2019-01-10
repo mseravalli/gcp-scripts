@@ -2,7 +2,7 @@
 Hana will be setup using the standard scripts and templates provided by GCP.
 
 ## Prerequisites
-In orer to be able to run the scripts present in this repository it is necessary to have Google Cloud SDK installed on the developers' workstation.
+In order to be able to run the scripts present in this repository it is necessary to have Google Cloud SDK installed on the developers' workstation.
 
 ### Service Accounts
 In a Shared VPC environment the service account that will run the Deployment Manager (by default `{project_number}@cloudservices.gserviceaccount.com`), needs to have `Compute Admin` in the service project and `Compute Network Admin` on in the host project.
@@ -31,7 +31,8 @@ $ ./setup.sh
 ```
 
 ## How does it work?
-The script `setup.sh` executes the Deployment Manager (DM) template `sap-hana.py`. The official version of this template can be found under [https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py](https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py).
+The script `setup.sh` executes the Deployment Manager (DM) template `sap_hana_deployment.py`. This template will prepare and then deploy the template `sap_hana.py`. The official version of this template can be found under [https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py](https://storage.googleapis.com/sapdeploy/dm-templates/sap_hana/sap_hana.py).
+`sap_hana_deployment.py` accepts the same parameters are `sap_hana.py` but additionally it sets up the service account and assigns it the right permissions.
 However, for customization purposes the same files can be found in the directory `dm-templates`.
 The template `templates/sap_hana/sap-hana.py` creates the necessary infrastructure for hosting Hana and then executes the scripts `dm-templates/sap_hana/startup.sh` on the master node and `dm-templates/sap_hana/startup_secondary.sh` on the worker nodes. The startup scripts in turn will call functions defined in `dm-templates/lib/sap_lib_main.sh` and `dm-templates/lib/sap_lib_hdb.sh`, that will perform the actual installation on the VMs.
 
@@ -47,7 +48,7 @@ In order to setup such an environment it is necessary to install python 3.6 firs
 
 The python dependencies can be installed by running:
 ```bash
-$ pip3 install --upgrade google-api-python-client
+$ pip3 install -r requirements.txt
 ```
 
 More information can be found [here](https://developers.google.com/api-client-library/python/start/installation).
@@ -65,57 +66,43 @@ The script will be run as a service account. It is hence necessary to:
 
 ## Reprovisioning
 ### Setup
-The variables in the file `reprovision.py` need to be updated with the information relevant for your environment.
-```python
-project = ""
-region = ""
-zone = ""
-original_vm_name = ""
-new_MachineType = ""
+Define the environment variables that need to be passed to the script with information relevant for your environment. 
+```bash
+$ export PROJECT=""
+$ export ZONE=""
+$ export ORIGINAL_VM_NAME=""
+$ export NEW_MACHINETYPE=""
 ```
 ### Running
-To run the scale up it is necessary to run the following command. 
+To run the reprovisioning it is necessary to run the following command. 
 ```bash
-$ reprovision.py
+$ ./reprovision.py  --project=${PROJECT} --zone=${ZONE} --original_vm_name=${ORIGINAL_VM_NAME} --new_MachineType=${NEW_MACHINETYPE}
 ```
 ### How does it work?
 The script copies the current configuration of a VM and creates a new VM with the same configuration. The reason of performing such an operations instead of changing directly the VM size, is to allow to perform extra additional checks and possible steps before the VMs comes up to life, e.g. check the processor architecture, add NICs etc.
 
 ## Scale out
 ### Setup
-The variables in the file `scale_out.py` need to be updated with the information relevant for your environment.
-```python
-project = ""
-network_name = ""
-subnet = ""
-region = ""
-zone = ""
-sys_nr = ""
-passwd = ""
-instance_name = ""
-worker = instance_name + 'w1' # the suffix is the name of the node that will be copied
-new_worker = instance_name + 'w2' # the suffix is the name of the new node that will be added
-```
-
-In addition to that, also the script for the opeartions `hana_operations.sh`, need to be updated
+Before running the script, export the following variables in your environment
 ```bash
-PROJECT=""
-NETWORK_NAME=""
-SUBNET=""
-ZONE=""
-TAG=""
-SID=""
-VM_NAME=""
-SYS_NR=""
-PASSWD=""
-NEW_INSTANCE_NUMBER="" # this will be the number of the new VM, assuming the vm will terminate with w${NEW_INSTANCE_NUMBER}
+$ export PROJECT=""
+$ export ZONE=""
+$ export SID=""
+$ export SYS_NR=""
+$ export PASSWD=""
+$ export MASTER=""
+$ export WORKER=""
+$ export NEW_WORKER=""
 ```
 
 ### Running
 To run the scale up it is necessary to run the following command. 
 ```
-$ scale_out.py
+$ scale_out.py --project=${PROJECT} --zone=${ZONE} --worker=${WORKER} --new_worker=${NEW_WORKER}
 ```
+
+The other environment variables will be used by `hana_operations.sh`.
+
 ### How does it work?
 The operations are separated for the infrastructure and the system point of view.
 The infrastructure opeartions are performed using python and the [Google API Client Library](https://developers.google.com/api-client-library/python/), the script containing the infrastructure opeartions is `scale_out.py`. The infrastructure script will call the system opeartions.
