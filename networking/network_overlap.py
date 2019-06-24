@@ -7,6 +7,9 @@ from absl import flags
 import googleapiclient.discovery
 
 # How to run:
+# install dependencies:
+# $ pip3 install --upgrade google-api-python-client
+# $ pip3 install --upgrade absl
 # In order to work properly the application needs to have access to the env
 # variable GOOGLE_APPLICATION_CREDENTIALS that will store the absolute path
 # of the credential:
