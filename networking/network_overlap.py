@@ -31,11 +31,12 @@ def get_cidr_ranges(project_id, compute):
   cidr_ranges = [] 
   for region in regions:
     subnets = compute.subnetworks().list(project=project_id, region=region).execute()
-    for subnet in subnets["items"]:
-      cidr_ranges.append((subnet["name"], subnet["ipCidrRange"]))
-      if "secondaryIpRanges" in subnet:
-        for r in subnet["secondaryIpRanges"]:
-          cidr_ranges.append((subnet["name"], r["ipCidrRange"]))
+    if "items" in subnets:
+      for subnet in subnets["items"]:
+        cidr_ranges.append((subnet["name"], subnet["ipCidrRange"]))
+        if "secondaryIpRanges" in subnet:
+          for r in subnet["secondaryIpRanges"]:
+            cidr_ranges.append((subnet["name"], r["ipCidrRange"]))
   return cidr_ranges
 
 def cidr_to_address(cidr):
