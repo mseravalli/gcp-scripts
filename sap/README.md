@@ -61,6 +61,7 @@ The script will be run as a service account. It is hence necessary to:
 * download the respective credentials in JSON format.
 * export the location of the credentials so that they are usable from the script.
   ```bash
+  $ gcloud iam service-accounts keys create ./credentials.json --iam-account <service account email>
   $ export GOOGLE_APPLICATION_CREDENTIALS=full_path_of_service_account_credentials
   ```
 
